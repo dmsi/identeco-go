@@ -1,6 +1,6 @@
 package keys
 
-func Rotate() error {
+func RotateKeys() error {
 	return nil
 }
 
