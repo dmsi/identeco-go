@@ -1,4 +1,4 @@
-package keys
+package jwks
 
 import (
 	"crypto/md5"
@@ -70,7 +70,7 @@ func decodeModulus(s string) (*big.Int, error) {
 	return decodeBigInt(s)
 }
 
-func publicKeyToJWK(pub rsa.PublicKey) (*JWK, error) {
+func PublicKeyToJWK(pub rsa.PublicKey) (*JWK, error) {
 	hash := md5.Sum(pub.N.Bytes())
 	kid := hex.EncodeToString(hash[:])
 
@@ -94,7 +94,7 @@ func publicKeyToJWK(pub rsa.PublicKey) (*JWK, error) {
 	}, nil
 }
 
-func jwkToPublicKey(jwk JWK) (*rsa.PublicKey, error) {
+func JWKToPublicKey(jwk JWK) (*rsa.PublicKey, error) {
 	e, err := decodeExponent(jwk.E)
 	if err != nil {
 		return nil, err
