@@ -1,7 +1,12 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/dmsi/identeco/pkg/token"
+)
 
 func main() {
-	fmt.Println("Hello!")
+	token, _ := token.IssueToken()
+	fmt.Printf("Register! token: %v\n", token)
 }
