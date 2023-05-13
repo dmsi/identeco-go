@@ -2,7 +2,6 @@ package s3helper
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -15,11 +14,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type testData struct {
-	Name    string `json:"name"`
-	Address string `json:"address"`
-}
-
 type testDownloader struct {
 	data map[string][]byte
 }
@@ -29,10 +23,6 @@ type testUploader struct {
 }
 
 func (d *testDownloader) Download(object io.WriterAt, input *s3.GetObjectInput, opts ...func(*s3manager.Downloader)) (int64, error) {
-	return 0, nil
-}
-
-func (d *testDownloader) DownloadWithContext(ctx aws.Context, object io.WriterAt, input *s3.GetObjectInput, opts ...func(*s3manager.Downloader)) (int64, error) {
 	path := *input.Bucket + "/" + *input.Key
 
 	data, ok := d.data[path]
@@ -45,6 +35,10 @@ func (d *testDownloader) DownloadWithContext(ctx aws.Context, object io.WriterAt
 		return 0, err
 	}
 
+	return 0, nil
+}
+
+func (d *testDownloader) DownloadWithContext(ctx aws.Context, object io.WriterAt, input *s3.GetObjectInput, opts ...func(*s3manager.Downloader)) (int64, error) {
 	return 0, nil
 }
 
@@ -76,6 +70,22 @@ func newMockSession() *S3Session {
 }
 
 func TestReadObject(t *testing.T) {
+	bucket := "test-bucket"
+	key := "test-key"
+	path := bucket + "/" + key
+
+	svc := newMockSession()
+	downloader := svc.Downloader.(*testDownloader)
+	require.NotNil(t, downloader)
+
+	_, ok := downloader.data[path]
+	require.False(t, ok)
+	downloader.data[path] = []byte("Sun/Milky Way")
+
+	buf := aws.NewWriteAtBuffer([]byte{})
+	err := svc.ReadObject(bucket, key, buf)
+	require.ErrorIs(t, err, nil)
+	assert.Equal(t, string(downloader.data[path]), string(buf.Bytes()))
 }
 
 func TestWriteObject(t *testing.T) {
@@ -90,23 +100,13 @@ func TestWriteObject(t *testing.T) {
 	_, ok := uploader.data[path]
 	require.False(t, ok)
 
-	expected := testData{
-		Name:    "Arcturus",
-		Address: "Milky Way",
-	}
-
-	var buf bytes.Buffer
-	err := json.NewEncoder(&buf).Encode(expected)
+	expected := "Arcturus/Milky Way"
+	buf := bytes.Buffer{}
+	_, err := buf.WriteString(expected)
 	require.ErrorIs(t, err, nil)
 
 	err = svc.WriteObject(bucket, key, &buf)
 	require.ErrorIs(t, err, nil)
 
-	data, ok := uploader.data[path]
-	require.True(t, ok)
-
-	got := testData{}
-	err = json.NewDecoder(bytes.NewBuffer(data)).Decode(&got)
-	require.ErrorIs(t, err, nil)
-	assert.Equal(t, expected, got)
+	assert.Equal(t, expected, string(uploader.data[path]))
 }
