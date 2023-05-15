@@ -8,8 +8,6 @@ import (
 	"math/big"
 )
 
-// TODO to separate module jwks
-
 // jwks.json example
 // {
 //     keys: [
