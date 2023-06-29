@@ -94,7 +94,7 @@ functions:
                   - ${self:custom.jwksObjectArn}
 
     rotateKeys:
-        handler: bin/rotatekeys
+        handler: bin/rotateKeys
         events:
             - schedule: rate(${self:provider.environment.PRIVATE_KEY_LIFETIME})
         iamRoleStatements:

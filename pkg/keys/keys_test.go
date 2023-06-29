@@ -10,11 +10,11 @@ import (
 
 func TestGetJWKS(t *testing.T) {
 	keyService := KeyService{
-		S3:       s3helper.NewMockSession(),
-		Bucket:   "test-bucket",
-		JWKSJson: "jwks.json",
+		S3:             s3helper.NewMockSession(),
+		Bucket:         "test-bucket",
+		JWKSObjectName: "jwks.json",
 	}
-	path := keyService.Bucket + "/" + keyService.JWKSJson
+	path := keyService.Bucket + "/" + keyService.JWKSObjectName
 	storage := keyService.S3.Downloader.(*s3helper.S3Mock).Data
 	storage[path] = []byte(
 		`{
