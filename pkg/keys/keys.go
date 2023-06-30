@@ -70,39 +70,30 @@ func (k *KeyService) RotateKeys() error {
 		return err
 	}
 
+	newJWKS := jwks.JWKS{
+		Keys: []jwks.JWK{
+			*keys.jwk,
+		},
+	}
+
 	// Write JWKS
-	// Make JWKS set of a previous and current key or just the current key in case
-	// of first rotation
+	currentJWKS, err := k.GetJWKS()
+	if err == nil {
+		newJWKS.Keys = append(newJWKS.Keys, currentJWKS.Keys[0])
+	}
 
-	// Generate keys
-	// fmt.Printf("Tests here!\n")
-	// privatekey, err := rsa.GenerateKey(rand.Reader, 2048)
-	// if err != nil {
-	// 	fmt.Printf("Cannot generate RSA key\n")
-	// 	os.Exit(1)
-	// }
-	// publickey := &privatekey.PublicKey
+	buf = bytes.Buffer{}
+	enc := json.NewEncoder(&buf)
+	err = enc.Encode(&newJWKS)
+	if err != nil {
+		return err
+	}
 
-	// fmt.Printf(">>> private %v\n", privatekey)
-	// fmt.Printf(">>> public %v\n", publickey)
+	err = k.S3.WriteObject(k.Bucket, k.JWKSObjectName, &buf)
+	if err != nil {
+		return err
+	}
 
-	// // GetJWKS from public key
-	// j, err := jwks.PublicKeyToJWK(*publickey)
-	// fmt.Printf(">>> jwks %v, err %v\n", j, err)
-
-	// // Encode private key as PEM
-	// pemdata := pem.EncodeToMemory(
-	// 	&pem.Block{
-	// 		Type:  "RSA PRIVATE KEY",
-	// 		Bytes: x509.MarshalPKCS1PrivateKey(privatekey),
-	// 	},
-	// )
-
-	// fmt.Printf(">>> pem %v\n", string(pemdata))
-
-	// p, _ := pem.Decode(pemdata)
-	// priv, err := x509.ParsePKCS1PrivateKey(p.Bytes)
-	// fmt.Printf(">>> frompem %v, err :%v\n", priv, err)
 	return nil
 }
 
