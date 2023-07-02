@@ -1,33 +1,58 @@
 package token
 
 import (
-	"fmt"
-	"time"
+	"os"
 
+	"github.com/dmsi/identeco/pkg/keys"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-type Token = string
-
-func keepImportedLol() {
-	_ = jwt.ClaimStrings{}
+type Tokens struct {
+	AccessToken  string `json:"access"`
+	RefreshToken string `json:"refresh"`
 }
 
-func IssueToken() (Token, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"foo": "bar",
-		"nbf": time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
-	})
-
-	// Sign and get the complete encoded token as a string using the secret
-	tokenString, err := token.SignedString([]byte("secret"))
-
-	fmt.Printf("ztoken: %v, err: %v\n", tokenString, err)
-	// jwt.SigningMethodRS256.Alg()
-
-	return "<token placeholder>", nil
+func accessTokenClaims(username string) jwt.MapClaims {
+	return jwt.MapClaims{
+		"username":  username,
+		"token_use": "access",
+		"iss":       os.Getenv("ISS_CLAIM"),
+	}
 }
 
-func RefreshToken() (Token, error) {
-	return "<token placeholder>", nil
+func refreshTokenClaims(username string) jwt.MapClaims {
+	return jwt.MapClaims{
+		"username":  username,
+		"token_use": "refresh",
+		"iss":       os.Getenv("ISS_CLAIM"),
+	}
+}
+
+func IssueTokens(username string) (*Tokens, error) {
+	k := keys.NewKeysService()
+	privateKey, err := k.GetPrivateKey()
+	if err != nil {
+		return nil, err
+	}
+
+	accessToken := jwt.NewWithClaims(jwt.SigningMethodRS256, accessTokenClaims(username))
+	signedAccessToken, err := accessToken.SignedString(privateKey)
+	if err != nil {
+		return nil, err
+	}
+
+	refreshToken := jwt.NewWithClaims(jwt.SigningMethodRS256, refreshTokenClaims(username))
+	signedRefreshToken, err := refreshToken.SignedString(privateKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Tokens{
+		AccessToken:  signedAccessToken,
+		RefreshToken: signedRefreshToken,
+	}, nil
+}
+
+func RefreshToken() (*Tokens, error) {
+	return &Tokens{}, nil
 }

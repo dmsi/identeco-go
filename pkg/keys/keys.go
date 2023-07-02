@@ -7,6 +7,7 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
+	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/dmsi/identeco/pkg/jwks"
@@ -48,6 +49,15 @@ func (k *KeyService) generateKeys(bits int) (*keys, error) {
 	}
 
 	return &keys{privatePem: pemdata, jwk: jwk}, nil
+}
+
+func NewKeysService() *KeyService {
+	return &KeyService{
+		S3:                   s3helper.NewS3Session(),
+		Bucket:               os.Getenv("BUCKET_NAME"),
+		JWKSObjectName:       os.Getenv("JWKS_JSON_NAME"),
+		PrivateKeyObjectName: os.Getenv("PRIVATE_KEY_NAME"),
+	}
 }
 
 func (k *KeyService) RotateKeys() error {
@@ -97,15 +107,34 @@ func (k *KeyService) RotateKeys() error {
 	return nil
 }
 
-func (k *KeyService) GetJWKS() (jwks.JWKS, error) {
+func (k *KeyService) readS3Bytes(bucketName, objectName string) ([]byte, error) {
+	buf := aws.NewWriteAtBuffer([]byte{})
+	err := k.S3.ReadObject(bucketName, objectName, buf)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+func (k *KeyService) GetJWKSBytes() ([]byte, error) {
 	buf := aws.NewWriteAtBuffer([]byte{})
 	err := k.S3.ReadObject(k.Bucket, k.JWKSObjectName, buf)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+func (k *KeyService) GetJWKS() (jwks.JWKS, error) {
+	jbytes, err := k.GetJWKSBytes()
 	if err != nil {
 		return jwks.JWKS{}, err
 	}
 
 	j := jwks.JWKS{}
-	err = json.Unmarshal(buf.Bytes(), &j)
+	err = json.Unmarshal(jbytes, &j)
 	if err != nil {
 		return jwks.JWKS{}, err
 	}
@@ -113,7 +142,23 @@ func (k *KeyService) GetJWKS() (jwks.JWKS, error) {
 	return j, nil
 }
 
-// Reads pem from S3 and return as rsa.PrivateKey
-func (k *KeyService) GetPrivateKey() (string, error) {
-	return "", nil
+// Reads pem from S3 and return as raw pem data
+func (k *KeyService) GetPrivateKeyRaw() ([]byte, error) {
+	return k.readS3Bytes(k.Bucket, k.PrivateKeyObjectName)
+}
+
+// Reads pem from S3 and return as raw rsa.PrivateKey
+func (k *KeyService) GetPrivateKey() (*rsa.PrivateKey, error) {
+	keydata, err := k.GetPrivateKeyRaw()
+	if err != nil {
+		return nil, err
+	}
+
+	p, _ := pem.Decode(keydata)
+	privateKey, err := x509.ParsePKCS1PrivateKey(p.Bytes)
+	if err != nil {
+		return nil, err
+	}
+
+	return privateKey, nil
 }
