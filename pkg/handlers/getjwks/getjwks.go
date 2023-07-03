@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -10,6 +12,8 @@ import (
 )
 
 func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	fmt.Println(os.Environ())
+
 	k := *keys.NewKeysService()
 	j, err := k.GetJWKSBytes()
 	if err != nil {

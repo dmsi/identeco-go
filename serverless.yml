@@ -18,8 +18,14 @@ provider:
         JWKS_JSON_NAME: 'jwks.json'
         PRIVATE_KEY_LENGTH: 2048
         PRIVATE_KEY_LIFETIME: '30 days'
-        ACCESS_TOKEN_LIFETIME: '60 minutes'
+        ACCESS_TOKEN_LIFETIME: '60m'
+        REFRESH_TOKEN_LIFETIME: '720h'
         ISS_CLAIM: https://github.com/dmsi/identeco
+
+package:
+    patterns:
+        - '!./**'
+        - bin/*
 
 custom:
     usersTableArn:
