@@ -20,6 +20,7 @@ func accessTokenClaims(username string) jwt.MapClaims {
 		"username":  username,
 		"token_use": "access",
 		"iss":       os.Getenv("ISS_CLAIM"),
+		// "exp":      time.Now().Add(t.ttl).Unix(),
 	}
 }
 
@@ -28,6 +29,7 @@ func refreshTokenClaims(username string) jwt.MapClaims {
 		"username":  username,
 		"token_use": "refresh",
 		"iss":       os.Getenv("ISS_CLAIM"),
+		// "exp":      time.Now().Add(t.ttl).Unix(),
 	}
 }
 
@@ -135,6 +137,7 @@ func VerifyToken(token string) (*jwt.MapClaims, error) {
 
 	fmt.Printf("Is this failing herer!!!!\n")
 
+	// TODO is that automatically check if the token expired?
 	claims, ok := decodedToken.Claims.(jwt.MapClaims)
 	if !ok || !decodedToken.Valid {
 		return nil, errors.New("verify token claims failed")
