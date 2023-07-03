@@ -150,3 +150,11 @@ func VerifyPassword(creds Credentials) (*bool, error) {
 
 	return aws.Bool(true), nil
 }
+
+func VerifyUser(username string) (*bool, error) {
+	_, err := GetUser(username)
+	if err != nil {
+		return nil, err
+	}
+	return aws.Bool(true), nil
+}
