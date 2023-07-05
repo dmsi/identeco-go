@@ -8,6 +8,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/stretchr/testify v1.8.2
 	golang.org/x/crypto v0.10.0
+	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df
 )
 
 require (

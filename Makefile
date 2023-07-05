@@ -1,19 +1,18 @@
-# TODO improve!
-first:
-	@go run .
+all: awslambda
 
-all:
-	# go build -ldflags="-s -w" -v -o ./bin/getjwks ./pkg/handlers/getjwks
-	# go build -ldflags="-s -w" -v -o ./bin/rotatekeys ./pkg/handlers/rotatekeys
-	# go build -ldflags="-s -w" -v -o ./bin/register ./pkg/handlers/register
-	GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o ./bin/getjwks ./pkg/handlers/getjwks
-	GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o ./bin/login ./pkg/handlers/login
-	GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o ./bin/register ./pkg/handlers/register
-	GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o ./bin/rotateKeys ./pkg/handlers/rotateKeys
-	GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o ./bin/refresh ./pkg/handlers/refresh
+awslambda:
+	GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o ./bin/getjwks ./cmd/awslambda/handlers/jwksets
+	GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o ./bin/login ./cmd/awslambda/handlers/login
+	GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o ./bin/register ./cmd/awslambda/handlers/register
+	GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o ./bin/rotatekeys ./cmd/awslambda/handlers/rotatekeys
+	GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o ./bin/refresh ./cmd/awslambda/handlers/refresh
+
 
 clean:
 	rm bin/*
 
 test:
 	go test ./...
+
+run:
+	@go run .
