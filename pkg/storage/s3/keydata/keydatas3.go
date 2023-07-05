@@ -8,8 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager/s3manageriface"
-	"github.com/dmsi/identeco/pkg/lib/e"
+	e "github.com/dmsi/identeco/pkg/lib/err"
 	"github.com/dmsi/identeco/pkg/storage"
+	"golang.org/x/exp/slog"
 )
 
 // TODO: wrap errors
@@ -21,13 +22,14 @@ type s3Session struct {
 
 // TODO: private and jwk sets object names can be part of this struct
 type KeyDataStorageS3 struct {
+	lg             *slog.Logger
 	client         s3Session
 	bucket         string
 	privateKeyName string
 	jwkSetsName    string
 }
 
-func New(bucket, privateKeyName, jwkSetsName string) *KeyDataStorageS3 {
+func New(lg *slog.Logger, bucket, privateKeyName, jwkSetsName string) *KeyDataStorageS3 {
 	sess := session.New()
 	client := s3Session{
 		uploader:   s3manager.NewUploader(sess),
@@ -35,6 +37,7 @@ func New(bucket, privateKeyName, jwkSetsName string) *KeyDataStorageS3 {
 	}
 
 	return &KeyDataStorageS3{
+		lg:             lg,
 		client:         client,
 		bucket:         bucket,
 		privateKeyName: privateKeyName,
@@ -103,6 +106,8 @@ func (k *KeyDataStorageS3) WritePrivateKey(key storage.PrivateKeyData) error {
 }
 
 func (k *KeyDataStorageS3) ReadJWKSets() (*storage.JWKSetsData, error) {
+	k.lg.Debug("Reading JWKSets", slog.Any(k.bucket, k.jwkSetsName))
+
 	data, err := k.client.readS3SmallObject(k.bucket, k.jwkSetsName)
 	if err != nil {
 		return nil, e.Wrap(op("ReadJWKSets"), err)

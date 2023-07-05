@@ -11,8 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	"github.com/dmsi/identeco/pkg/keys"
-	"github.com/dmsi/identeco/pkg/s3helper"
 )
 
 type TestDownloader struct{}
@@ -101,15 +99,15 @@ func main() {
 	// _ = privatekey
 	// _ = publickey
 
-	k := keys.KeyService{
-		S3:                   s3helper.NewS3Session(),
-		Bucket:               "identeco-dev-keys",
-		JWKSObjectName:       "jwks.json",
-		PrivateKeyObjectName: "privatekey.pem",
-	}
+	// k := keys.KeyService{
+	// 	S3:                   s3helper.NewS3Session(),
+	// 	Bucket:               "identeco-dev-keys",
+	// 	JWKSObjectName:       "jwks.json",
+	// 	PrivateKeyObjectName: "privatekey.pem",
+	// }
 
-	err := k.RotateKeys()
-	fmt.Printf(">>> err %v\n", err)
+	// err := k.RotateKeys()
+	// fmt.Printf(">>> err %v\n", err)
 }
 
 func ParseRsaPrivateKeyFromPemStr(privPEM string) (*rsa.PrivateKey, error) {
