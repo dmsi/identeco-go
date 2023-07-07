@@ -12,7 +12,6 @@ import (
 	"golang.org/x/exp/slog"
 )
 
-// TODO: logger interface
 type UserDataStorage struct {
 	lg    *slog.Logger
 	ddb   *dynamodb.DynamoDB
