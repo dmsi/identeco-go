@@ -16,7 +16,7 @@
 -   [ ] add mongodb storage backend
 -   [ ] runtime/httpserver
 -   [ ] run in docker + add http server
--   [ ] remove plain rand from key generation
+-   [x] remove plain rand from key generation
 -   [ ] protect private key with password?
 -   [ ] configure req/res fields, like "username", "access" or "accessToken" or "access_token" etc
 

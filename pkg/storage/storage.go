@@ -1,8 +1,5 @@
 package storage
 
-// TODO logger
-
-// RefreshToken separate struct
 type UserData struct {
 	Username string
 	Password string
