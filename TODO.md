@@ -14,7 +14,7 @@
 -   [ ] better errors
 -   [x] move handlers under runtime/awslambda?
 -   [x] add mongodb storage backend
--   [ ] runtime/httpserver
+-   [x] runtime/httpserver
 -   [ ] run in docker + add http server
 -   [x] remove plain rand from key generation
 -   [ ] protect private key with password?
@@ -27,6 +27,7 @@
 -   [ ] delete user testcases
 -   [ ] store refresh in DB
 -   [ ] TODO document env variables for both awslambda and httpserver
+-   [ ] when it comes to error it's not clear how to pin-point the issue. wrap all the errors unconditionally?
 
 # Env
 

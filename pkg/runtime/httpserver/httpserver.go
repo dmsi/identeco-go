@@ -34,11 +34,6 @@ const (
 	envIssClaim             = "IDO_CLAIM_ISS"
 )
 
-type Runtime struct {
-	Log    *slog.Logger
-	Router router.Router
-}
-
 func newHandler() (*handlers.Handler, error) {
 	return nil, nil
 }
@@ -162,7 +157,7 @@ func newController() (*controllers.Controller, error) {
 	}, nil
 }
 
-func NewRuntime(mount string) (*Runtime, error) {
+func NewRouter(mount string) (*router.Router, error) {
 	c, err := newController()
 	if err != nil {
 		return nil, err
@@ -182,65 +177,5 @@ func NewRuntime(mount string) (*Runtime, error) {
 		return nil, err
 	}
 
-	return &Runtime{
-		Log:    c.Log,
-		Router: *r,
-	}, nil
+	return r, nil
 }
-
-/*
-func CreateLoginController() (*login.LoginController, error) {
-	c, err := newController()
-	if err != nil {
-		return nil, err
-	}
-
-	return &login.LoginController{
-		Controller: *c,
-	}, nil
-}
-
-func CreateRefreshController() (*refresh.RefreshController, error) {
-	c, err := newController()
-	if err != nil {
-		return nil, err
-	}
-
-	return &refresh.RefreshController{
-		Controller: *c,
-	}, nil
-}
-
-func CreateRegisterController() (*register.RegisterController, error) {
-	c, err := newController()
-	if err != nil {
-		return nil, err
-	}
-
-	return &register.RegisterController{
-		Controller: *c,
-	}, nil
-}
-
-func CreateRotateKeysController() (*rotatekeys.RotateController, error) {
-	c, err := newController()
-	if err != nil {
-		return nil, err
-	}
-
-	return &rotatekeys.RotateController{
-		Controller: *c,
-	}, nil
-}
-
-func CreateJwkSetsController() (*jwksets.JWKSetsController, error) {
-	c, err := newController()
-	if err != nil {
-		return nil, err
-	}
-
-	return &jwksets.JWKSetsController{
-		Controller: *c,
-	}, nil
-}
-*/
