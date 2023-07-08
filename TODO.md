@@ -23,6 +23,9 @@
 -   [ ] put together documentation
 -   [ ] rename "github.com/dmsi/identeco-go"?
 -   [ ] add `model` which consumes `storage` and provides easier-to-use serialization/deserialization
+-   [ ] delete user
+-   [ ] delete user testcases
+-   [ ] store refresh in DB
 
 # Env
 
