@@ -39,17 +39,11 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 	err := json.Unmarshal([]byte(req.Body), creds)
 	if err != nil {
 		return errResponse(err)
-		// return events.APIGatewayProxyResponse{
-		// 	StatusCode: http.StatusUnauthorized,
-		// }, err
 	}
 
 	body, err := controller.Login(creds.Username, creds.Password)
 	if err != nil {
 		return errResponse(err)
-		// return events.APIGatewayProxyResponse{
-		// 	StatusCode: http.StatusUnauthorized,
-		// }, err
 	}
 
 	return events.APIGatewayProxyResponse{
