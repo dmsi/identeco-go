@@ -1,4 +1,4 @@
-package keydatas3
+package keyss3
 
 import (
 	"bytes"
@@ -13,15 +13,12 @@ import (
 	"golang.org/x/exp/slog"
 )
 
-// TODO: wrap errors
-
 type s3Session struct {
 	uploader   s3manageriface.UploaderAPI
 	downloader s3manageriface.DownloaderAPI
 }
 
-// TODO: private and jwk sets object names can be part of this struct
-type KeyDataStorageS3 struct {
+type KeysStorage struct {
 	lg             *slog.Logger
 	client         s3Session
 	bucket         string
@@ -29,14 +26,14 @@ type KeyDataStorageS3 struct {
 	jwkSetsName    string
 }
 
-func New(lg *slog.Logger, bucket, privateKeyName, jwkSetsName string) *KeyDataStorageS3 {
+func New(lg *slog.Logger, bucket, privateKeyName, jwkSetsName string) *KeysStorage {
 	sess := session.New()
 	client := s3Session{
 		uploader:   s3manager.NewUploader(sess),
 		downloader: s3manager.NewDownloader(sess),
 	}
 
-	return &KeyDataStorageS3{
+	return &KeysStorage{
 		lg:             lg,
 		client:         client,
 		bucket:         bucket,
@@ -46,7 +43,7 @@ func New(lg *slog.Logger, bucket, privateKeyName, jwkSetsName string) *KeyDataSt
 }
 
 func op(name string) string {
-	return "storage.s3.keydata." + name
+	return "storage.s3.keyss3." + name
 }
 
 func (s *s3Session) readS3SmallObject(bucket, key string) ([]byte, error) {
@@ -85,7 +82,7 @@ func (s *s3Session) writeS3SmallObject(bucket, key string, object []byte) error 
 	return nil
 }
 
-func (k *KeyDataStorageS3) ReadPrivateKey() (*storage.PrivateKeyData, error) {
+func (k *KeysStorage) ReadPrivateKey() (*storage.PrivateKeyData, error) {
 	data, err := k.client.readS3SmallObject(k.bucket, k.privateKeyName)
 	if err != nil {
 		return nil, e.Wrap(op("ReadPrivateKey"), err)
@@ -96,7 +93,7 @@ func (k *KeyDataStorageS3) ReadPrivateKey() (*storage.PrivateKeyData, error) {
 	}, nil
 }
 
-func (k *KeyDataStorageS3) WritePrivateKey(key storage.PrivateKeyData) error {
+func (k *KeysStorage) WritePrivateKey(key storage.PrivateKeyData) error {
 	err := k.client.writeS3SmallObject(k.bucket, k.privateKeyName, key.Data)
 	if err != nil {
 		return e.Wrap(op("WritePrivateKey"), err)
@@ -105,7 +102,7 @@ func (k *KeyDataStorageS3) WritePrivateKey(key storage.PrivateKeyData) error {
 	return nil
 }
 
-func (k *KeyDataStorageS3) ReadJWKSets() (*storage.JWKSetsData, error) {
+func (k *KeysStorage) ReadJWKSets() (*storage.JWKSetsData, error) {
 	k.lg.Debug("Reading JWKSets", slog.Any(k.bucket, k.jwkSetsName))
 
 	data, err := k.client.readS3SmallObject(k.bucket, k.jwkSetsName)
@@ -118,7 +115,7 @@ func (k *KeyDataStorageS3) ReadJWKSets() (*storage.JWKSetsData, error) {
 	}, nil
 }
 
-func (k *KeyDataStorageS3) WriteJWKSets(jwkSets storage.JWKSetsData) error {
+func (k *KeysStorage) WriteJWKSets(jwkSets storage.JWKSetsData) error {
 	err := k.client.writeS3SmallObject(k.bucket, k.jwkSetsName, jwkSets.Data)
 	if err != nil {
 		return e.Wrap(op("WriteJWKSets"), err)
