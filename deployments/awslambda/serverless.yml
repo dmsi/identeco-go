@@ -42,8 +42,8 @@ custom:
               - ${self:provider.environment.IDO_JWKS_NAME}
 
 functions:
-    getJwks:
-        handler: bin/getjwks
+    jwksets:
+        handler: bin/jwksets
         events:
             - http:
                   method: get

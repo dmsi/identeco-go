@@ -9,8 +9,8 @@ import (
 
 type Controller struct {
 	Log          *slog.Logger
-	UserStorage  storage.UserDataStorage
-	KeyStorage   storage.KeyDataStorage
+	UserStorage  storage.UsersStorage
+	KeyStorage   storage.KeysStorage
 	TokenService token.TokenService
 	KeyService   keys.KeyService
 }

@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/dmsi/identeco/pkg/storage"
-	"github.com/dmsi/identeco/pkg/storage/mongodb/userdata"
+	"github.com/dmsi/identeco/pkg/storage/mongodb/usersmongodb"
 	_ "github.com/joho/godotenv/autoload"
 	"golang.org/x/exp/slog"
 )
@@ -12,7 +12,7 @@ import (
 func main() {
 	lg := slog.Default()
 
-	u, err := userdata.New(lg, os.Getenv("MONGODB_URL"), "main", "users")
+	u, err := usersmongodb.New(lg, os.Getenv("MONGODB_URL"), "main", "users")
 	if err != nil {
 		panic(err)
 	}

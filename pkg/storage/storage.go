@@ -14,12 +14,12 @@ type JWKSetsData struct {
 	Data []byte
 }
 
-type UserDataStorage interface {
+type UsersStorage interface {
 	ReadUserData(username string) (*UserData, error)
 	WriteUserData(user UserData) error
 }
 
-type KeyDataStorage interface {
+type KeysStorage interface {
 	ReadPrivateKey() (*PrivateKeyData, error)
 	WritePrivateKey(key PrivateKeyData) error
 

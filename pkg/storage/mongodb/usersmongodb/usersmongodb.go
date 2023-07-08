@@ -1,4 +1,4 @@
-package userdata
+package usersmongodb
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"golang.org/x/exp/slog"
 )
 
-type UserDataStorage struct {
+type UsersStorage struct {
 	lg             *slog.Logger
 	client         *mongo.Client
 	mdb            *mongo.Collection
@@ -21,12 +21,12 @@ type UserDataStorage struct {
 }
 
 func op(name string) string {
-	return "storage.mongodb.userdata." + name
+	return "storage.mongodb.usersmongodb." + name
 }
 
 // TODO what if both keydata and userdata want to share the same connection?
 // storage.Session {} interface with open/close?
-func New(lg *slog.Logger, url, database, collection string) (*UserDataStorage, error) {
+func New(lg *slog.Logger, url, database, collection string) (*UsersStorage, error) {
 	ctx := context.Background()
 	theLg := lg.With("database", database, "collection", collection)
 
@@ -54,7 +54,7 @@ func New(lg *slog.Logger, url, database, collection string) (*UserDataStorage, e
 
 	theLg.Info("mongodb index set", "index", index)
 
-	return &UserDataStorage{
+	return &UsersStorage{
 		lg:             lg,
 		client:         client,
 		mdb:            mdb,
@@ -64,7 +64,7 @@ func New(lg *slog.Logger, url, database, collection string) (*UserDataStorage, e
 	}, nil
 }
 
-func (u *UserDataStorage) ReadUserData(username string) (*storage.UserData, error) {
+func (u *UsersStorage) ReadUserData(username string) (*storage.UserData, error) {
 	filter := bson.D{{"username", username}}
 	res := u.mdb.FindOne(u.ctx, filter)
 
@@ -83,7 +83,7 @@ func (u *UserDataStorage) ReadUserData(username string) (*storage.UserData, erro
 	}, nil
 }
 
-func (u *UserDataStorage) WriteUserData(user storage.UserData) error {
+func (u *UsersStorage) WriteUserData(user storage.UserData) error {
 	opts := options.Update().SetUpsert(true)
 	filter := bson.D{{"username", user.Username}}
 	update := bson.D{{

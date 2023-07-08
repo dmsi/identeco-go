@@ -19,10 +19,9 @@
 -   [x] remove plain rand from key generation
 -   [ ] protect private key with password?
 -   [ ] configure req/res fields, like "username", "access" or "accessToken" or "access_token" etc
--   [ ] rename storage modules "keydatas3", "keydatamdb" or "keydatamongo", "userdataddb" or "userdatadynamo", "keydata_mdb" ???
+-   [x] rename storage modules "keydatas3", "keydatamdb" or "keydatamongo", "userdataddb" or "userdatadynamo", "keydata_mdb" ???
 -   [ ] put together documentation
 -   [ ] rename "github.com/dmsi/identeco-go"?
--   [ ] rename the other one repo "identeco-node"
 
 # Env
 

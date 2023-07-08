@@ -15,8 +15,8 @@ import (
 	"github.com/dmsi/identeco/pkg/services/keys"
 	"github.com/dmsi/identeco/pkg/services/token"
 	"github.com/dmsi/identeco/pkg/storage"
-	"github.com/dmsi/identeco/pkg/storage/dynamodb/userdata"
-	keydatas3 "github.com/dmsi/identeco/pkg/storage/s3/keydata"
+	"github.com/dmsi/identeco/pkg/storage/dynamodb/usersdynamodb"
+	"github.com/dmsi/identeco/pkg/storage/s3/keyss3"
 	"golang.org/x/exp/slog"
 )
 
@@ -85,8 +85,8 @@ func newTokenService(lg *slog.Logger) (*token.TokenService, error) {
 	}, nil
 }
 
-func newKeyStorage(lg *slog.Logger) (storage.KeyDataStorage, error) {
-	return keydatas3.New(
+func newKeyStorage(lg *slog.Logger) (storage.KeysStorage, error) {
+	return keyss3.New(
 		lg,
 		os.Getenv("IDO_BUCKET_NAME"),
 		os.Getenv("IDO_PRIVATE_KEY_NAME"),
@@ -94,8 +94,8 @@ func newKeyStorage(lg *slog.Logger) (storage.KeyDataStorage, error) {
 	), nil
 }
 
-func newUserStorage(lg *slog.Logger) (storage.UserDataStorage, error) {
-	return userdata.New(lg, os.Getenv("IDO_TABLE_NAME")), nil
+func newUserStorage(lg *slog.Logger) (storage.UsersStorage, error) {
+	return usersdynamodb.New(lg, os.Getenv("IDO_TABLE_NAME")), nil
 }
 
 func newController() (*controllers.Controller, error) {

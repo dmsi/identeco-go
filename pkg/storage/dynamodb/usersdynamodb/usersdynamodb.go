@@ -1,4 +1,4 @@
-package userdata
+package usersdynamodb
 
 import (
 	"errors"
@@ -12,16 +12,16 @@ import (
 	"golang.org/x/exp/slog"
 )
 
-type UserDataStorage struct {
+type UsersStorage struct {
 	lg    *slog.Logger
 	ddb   *dynamodb.DynamoDB
 	table string
 }
 
-func New(lg *slog.Logger, table string) *UserDataStorage {
+func New(lg *slog.Logger, table string) *UsersStorage {
 	sess := session.New()
 
-	return &UserDataStorage{
+	return &UsersStorage{
 		lg:    lg,
 		ddb:   dynamodb.New(sess),
 		table: table,
@@ -29,10 +29,10 @@ func New(lg *slog.Logger, table string) *UserDataStorage {
 }
 
 func op(name string) string {
-	return "storage.dynamodb.userdata." + name
+	return "storage.dynamodb.usersdynamodb." + name
 }
 
-func (u *UserDataStorage) ReadUserData(username string) (*storage.UserData, error) {
+func (u *UsersStorage) ReadUserData(username string) (*storage.UserData, error) {
 	input := &dynamodb.GetItemInput{
 		TableName: aws.String(u.table),
 		Key: map[string]*dynamodb.AttributeValue{
@@ -68,7 +68,7 @@ func (u *UserDataStorage) ReadUserData(username string) (*storage.UserData, erro
 	}, nil
 }
 
-func (u *UserDataStorage) WriteUserData(user storage.UserData) error {
+func (u *UsersStorage) WriteUserData(user storage.UserData) error {
 	input := &dynamodb.PutItemInput{
 		TableName: aws.String(u.table),
 		Item: map[string]*dynamodb.AttributeValue{
