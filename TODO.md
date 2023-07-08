@@ -13,7 +13,7 @@
 -   [x] in accordance with https://github.com/golang-standards/project-layout move handlers to cmd?
 -   [ ] better errors
 -   [x] move handlers under runtime/awslambda?
--   [ ] add mongodb storage backend
+-   [x] add mongodb storage backend
 -   [ ] runtime/httpserver
 -   [ ] run in docker + add http server
 -   [x] remove plain rand from key generation
@@ -22,6 +22,7 @@
 -   [x] rename storage modules "keydatas3", "keydatamdb" or "keydatamongo", "userdataddb" or "userdatadynamo", "keydata_mdb" ???
 -   [ ] put together documentation
 -   [ ] rename "github.com/dmsi/identeco-go"?
+-   [ ] add `model` which consumes `storage` and provides easier-to-use serialization/deserialization
 
 # Env
 

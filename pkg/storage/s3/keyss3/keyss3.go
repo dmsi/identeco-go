@@ -13,14 +13,11 @@ import (
 	"golang.org/x/exp/slog"
 )
 
-// TODO: wrap errors
-
 type s3Session struct {
 	uploader   s3manageriface.UploaderAPI
 	downloader s3manageriface.DownloaderAPI
 }
 
-// TODO: private and jwk sets object names can be part of this struct
 type KeysStorage struct {
 	lg             *slog.Logger
 	client         s3Session
