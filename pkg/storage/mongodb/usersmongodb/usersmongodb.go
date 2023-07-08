@@ -2,6 +2,7 @@ package usersmongodb
 
 import (
 	"context"
+	"errors"
 
 	e "github.com/dmsi/identeco/pkg/lib/err"
 	"github.com/dmsi/identeco/pkg/storage"
@@ -83,17 +84,35 @@ func (u *UsersStorage) ReadUserData(username string) (*storage.UserData, error) 
 	}, nil
 }
 
+// Must fail when user exists. For updating password later UpdateUserData
+// needs to be implemented
 func (u *UsersStorage) WriteUserData(user storage.UserData) error {
-	opts := options.Update().SetUpsert(true)
-	filter := bson.D{{"username", user.Username}}
-	update := bson.D{{
-		"$set", bson.D{
-			{"username", user.Username},
-			{"hash", user.Hash},
-		},
-	}}
+	if user.Username == "" || user.Hash == "" {
+		return e.Wrap(op("WriteUserData"), errors.New("invalid arguments"))
+	}
+	// opts := options.Update().SetUpsert(true)
+	// filter := bson.D{{"username", user.Username}}
+	// update := bson.D{{
+	// 	"$set", bson.D{
+	// 		{"username", user.Username},
+	// 		{"hash", user.Hash},
+	// 	},
+	// }}
 
-	_, err := u.mdb.UpdateOne(u.ctx, filter, update, opts)
+	// _, err := u.mdb.UpdateOne(u.ctx, filter, update, opts)
+	// if err != nil {
+	// 	return e.Wrap(op("WriteUserData"), err)
+	// }
+
+	mongoUser := struct {
+		Username string `bson:"username"`
+		Hash     string `bson:"hash"`
+	}{
+		Username: user.Username,
+		Hash:     user.Hash,
+	}
+
+	_, err := u.mdb.InsertOne(u.ctx, &mongoUser)
 	if err != nil {
 		return e.Wrap(op("WriteUserData"), err)
 	}

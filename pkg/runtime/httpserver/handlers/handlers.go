@@ -1,7 +1,10 @@
 package handlers
 
 import (
+	"encoding/json"
+	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/dmsi/identeco/pkg/controllers/jwksets"
 	"github.com/dmsi/identeco/pkg/controllers/login"
@@ -43,12 +46,61 @@ func (h *Handler) JWKSetsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	user := struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}{}
+
+	dec := json.NewDecoder(r.Body)
+	err := dec.Decode(&user)
+	if err != nil {
+		h.errResponse(err, http.StatusBadRequest, w, r)
+		return
+	}
+
+	res, err := h.Register.Register(user.Username, user.Password)
+	if err != nil {
+		h.errResponse(err, http.StatusBadRequest, w, r)
+	} else {
+		h.okResponse(res, w, r)
+	}
 }
 
 func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
+	user := struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}{}
+
+	dec := json.NewDecoder(r.Body)
+	err := dec.Decode(&user)
+	if err != nil {
+		h.errResponse(err, http.StatusUnauthorized, w, r)
+		return
+	}
+
+	res, err := h.Login.Login(user.Username, user.Password)
+	if err != nil {
+		h.errResponse(err, http.StatusUnauthorized, w, r)
+	} else {
+		h.okResponse(res, w, r)
+	}
 }
 
 func (h *Handler) RefreshHandler(w http.ResponseWriter, r *http.Request) {
+	auth := r.Header.Get("Authorization")
+	if auth == "" {
+		h.errResponse(errors.New("no authorization header"), http.StatusUnauthorized, w, r)
+		return
+	}
+
+	refreshToken := strings.Split(auth, " ")[1]
+	res, err := h.Refresh.Refresh(refreshToken)
+	if err != nil {
+		h.errResponse(err, http.StatusUnauthorized, w, r)
+	} else {
+		h.okResponse(res, w, r)
+	}
 }
 
 func (h *Handler) RotateKeysHandler(w http.ResponseWriter, r *http.Request) {

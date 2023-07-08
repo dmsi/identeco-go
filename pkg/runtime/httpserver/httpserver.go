@@ -31,17 +31,12 @@ const (
 	envPrivateKeyLength     = "IDO_PRIVATE_KEY_LENGTH"
 	envAccessTokenLifetime  = "IDO_ACCESS_TOKEN_LIFETIME"
 	envRefreshTokenLifetime = "IDO_REFRESH_TOKEN_LIFETIME"
-	envIssClaim             = "IDO_ISS_CLAIM"
+	envIssClaim             = "IDO_CLAIM_ISS"
 )
 
 type Runtime struct {
 	Log    *slog.Logger
 	Router router.Router
-	// jwksets    *jwksets.JWKSetsController
-	// register   *register.RegisterController
-	// login      *login.LoginController
-	// refresh    *refresh.RefreshController
-	// rotatekeys *rotatekeys.RotateController
 }
 
 func newHandler() (*handlers.Handler, error) {

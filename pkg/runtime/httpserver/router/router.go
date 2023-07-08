@@ -19,7 +19,7 @@ func New(mount string, h handlers.Handler) (*Router, error) {
 	r.Use(middleware.Recoverer)
 
 	r.Get("/.well-known/jwks.json", h.JWKSetsHandler)
-	r.Post("/register", h.RefreshHandler)
+	r.Post("/register", h.RegisterHandler)
 	r.Post("/login", h.LoginHandler)
 	r.Get("/refresh", h.RefreshHandler)
 	// TODO instead of a route ->
