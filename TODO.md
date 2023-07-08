@@ -26,6 +26,7 @@
 -   [ ] delete user
 -   [ ] delete user testcases
 -   [ ] store refresh in DB
+-   [ ] TODO document env variables for both awslambda and httpserver
 
 # Env
 
