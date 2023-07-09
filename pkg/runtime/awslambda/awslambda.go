@@ -12,7 +12,6 @@ import (
 	"github.com/dmsi/identeco/pkg/controllers/refresh"
 	"github.com/dmsi/identeco/pkg/controllers/register"
 	"github.com/dmsi/identeco/pkg/controllers/rotatekeys"
-	"github.com/dmsi/identeco/pkg/runtime/awslambda/handlers"
 	"github.com/dmsi/identeco/pkg/services/keys"
 	"github.com/dmsi/identeco/pkg/services/token"
 	"github.com/dmsi/identeco/pkg/storage"
@@ -20,10 +19,6 @@ import (
 	"github.com/dmsi/identeco/pkg/storage/s3/keyss3"
 	"golang.org/x/exp/slog"
 )
-
-type Handler struct {
-	handlers.Handler
-}
 
 func newLogger() *slog.Logger {
 	// Remove the directory from the source's filename.
@@ -135,6 +130,18 @@ func newController() (*controllers.Controller, error) {
 	}, nil
 }
 
+func NewJWKSetsHandler() (*Handler, error) {
+	c, err := newController()
+	if err != nil {
+		return nil, err
+	}
+
+	return &Handler{
+		lg:      c.Log,
+		jwksets: &jwksets.JWKSetsController{Controller: *c},
+	}, nil
+}
+
 func NewRegisterHandler() (*Handler, error) {
 	c, err := newController()
 	if err != nil {
@@ -142,10 +149,8 @@ func NewRegisterHandler() (*Handler, error) {
 	}
 
 	return &Handler{
-		Handler: handlers.Handler{
-			Log:      c.Log,
-			Register: &register.RegisterController{Controller: *c},
-		},
+		lg:       c.Log,
+		register: &register.RegisterController{Controller: *c},
 	}, nil
 }
 
@@ -156,10 +161,8 @@ func NewLoginHandler() (*Handler, error) {
 	}
 
 	return &Handler{
-		Handler: handlers.Handler{
-			Log:   c.Log,
-			Login: &login.LoginController{Controller: *c},
-		},
+		lg:    c.Log,
+		login: &login.LoginController{Controller: *c},
 	}, nil
 }
 
@@ -170,10 +173,8 @@ func NewRefreshHandler() (*Handler, error) {
 	}
 
 	return &Handler{
-		Handler: handlers.Handler{
-			Log:     c.Log,
-			Refresh: &refresh.RefreshController{Controller: *c},
-		},
+		lg:      c.Log,
+		refresh: &refresh.RefreshController{Controller: *c},
 	}, nil
 }
 
@@ -184,23 +185,7 @@ func NewRotateKeysHandler() (*Handler, error) {
 	}
 
 	return &Handler{
-		Handler: handlers.Handler{
-			Log:        c.Log,
-			RotateKeys: &rotatekeys.RotateController{Controller: *c},
-		},
-	}, nil
-}
-
-func NewJWKSetsHandler() (*Handler, error) {
-	c, err := newController()
-	if err != nil {
-		return nil, err
-	}
-
-	return &Handler{
-		Handler: handlers.Handler{
-			Log:     c.Log,
-			JWKSets: &jwksets.JWKSetsController{Controller: *c},
-		},
+		lg:         c.Log,
+		rotatekeys: &rotatekeys.RotateController{Controller: *c},
 	}, nil
 }

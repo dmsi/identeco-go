@@ -1,4 +1,4 @@
-package handlers
+package httpserver
 
 import (
 	"encoding/json"
@@ -14,21 +14,21 @@ import (
 	"golang.org/x/exp/slog"
 )
 
-type Handler struct {
-	Log        *slog.Logger
-	JWKSets    *jwksets.JWKSetsController
-	Register   *register.RegisterController
-	Login      *login.LoginController
-	Refresh    *refresh.RefreshController
-	RotateKeys *rotatekeys.RotateController
+type handler struct {
+	lg         *slog.Logger
+	jwksets    *jwksets.JWKSetsController
+	register   *register.RegisterController
+	login      *login.LoginController
+	refresh    *refresh.RefreshController
+	rotatekeys *rotatekeys.RotateController
 }
 
-func (h *Handler) errResponse(err error, status int, w http.ResponseWriter, r *http.Request) {
-	h.Log.Error("oops", "error", err)
+func (h *handler) errResponse(err error, status int, w http.ResponseWriter, r *http.Request) {
+	h.lg.Error("oops", "error", err)
 	w.WriteHeader(status)
 }
 
-func (h *Handler) okResponse(body *string, w http.ResponseWriter, r *http.Request) {
+func (h *handler) okResponse(body *string, w http.ResponseWriter, r *http.Request) {
 	if body != nil {
 		w.Write([]byte(*body))
 	} else {
@@ -36,8 +36,8 @@ func (h *Handler) okResponse(body *string, w http.ResponseWriter, r *http.Reques
 	}
 }
 
-func (h *Handler) JWKSetsHandler(w http.ResponseWriter, r *http.Request) {
-	res, err := h.JWKSets.GetJWKSets()
+func (h *handler) jwkSetsHandler(w http.ResponseWriter, r *http.Request) {
+	res, err := h.jwksets.GetJWKSets()
 	if err != nil {
 		h.errResponse(err, http.StatusNotFound, w, r)
 	} else {
@@ -45,7 +45,7 @@ func (h *Handler) JWKSetsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) RegisterHandler(w http.ResponseWriter, r *http.Request) {
+func (h *handler) registerHandler(w http.ResponseWriter, r *http.Request) {
 	user := struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
@@ -58,7 +58,7 @@ func (h *Handler) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := h.Register.Register(user.Username, user.Password)
+	res, err := h.register.Register(user.Username, user.Password)
 	if err != nil {
 		h.errResponse(err, http.StatusBadRequest, w, r)
 	} else {
@@ -66,7 +66,7 @@ func (h *Handler) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
+func (h *handler) loginHandler(w http.ResponseWriter, r *http.Request) {
 	user := struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
@@ -79,7 +79,7 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := h.Login.Login(user.Username, user.Password)
+	res, err := h.login.Login(user.Username, user.Password)
 	if err != nil {
 		h.errResponse(err, http.StatusUnauthorized, w, r)
 	} else {
@@ -87,7 +87,7 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) RefreshHandler(w http.ResponseWriter, r *http.Request) {
+func (h *handler) refreshHandler(w http.ResponseWriter, r *http.Request) {
 	auth := r.Header.Get("Authorization")
 	if auth == "" {
 		h.errResponse(errors.New("no authorization header"), http.StatusUnauthorized, w, r)
@@ -95,7 +95,7 @@ func (h *Handler) RefreshHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	refreshToken := strings.Split(auth, " ")[1]
-	res, err := h.Refresh.Refresh(refreshToken)
+	res, err := h.refresh.Refresh(refreshToken)
 	if err != nil {
 		h.errResponse(err, http.StatusUnauthorized, w, r)
 	} else {
@@ -103,8 +103,8 @@ func (h *Handler) RefreshHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) RotateKeysHandler(w http.ResponseWriter, r *http.Request) {
-	err := h.RotateKeys.RotateKeys()
+func (h *handler) rotateKeysHandler(w http.ResponseWriter, r *http.Request) {
+	err := h.rotatekeys.RotateKeys()
 	if err != nil {
 		h.errResponse(err, http.StatusInternalServerError, w, r)
 	} else {

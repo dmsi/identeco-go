@@ -1,4 +1,4 @@
-package handlers
+package awslambda
 
 import (
 	"context"
@@ -17,16 +17,16 @@ import (
 )
 
 type Handler struct {
-	Log        *slog.Logger
-	JWKSets    *jwksets.JWKSetsController
-	Register   *register.RegisterController
-	Login      *login.LoginController
-	Refresh    *refresh.RefreshController
-	RotateKeys *rotatekeys.RotateController
+	lg         *slog.Logger
+	jwksets    *jwksets.JWKSetsController
+	register   *register.RegisterController
+	login      *login.LoginController
+	refresh    *refresh.RefreshController
+	rotatekeys *rotatekeys.RotateController
 }
 
 func (h *Handler) errResponse(err error, status int) (events.APIGatewayProxyResponse, error) {
-	h.Log.Error("oops", "error", err)
+	h.lg.Error("oops", "error", err)
 
 	return events.APIGatewayProxyResponse{
 		StatusCode: status,
@@ -50,28 +50,9 @@ func (h *Handler) okResponse(body *string) (events.APIGatewayProxyResponse, erro
 }
 
 func (h *Handler) JWKSetsHandler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	body, err := h.JWKSets.GetJWKSets()
+	body, err := h.jwksets.GetJWKSets()
 	if err != nil {
 		return h.errResponse(err, http.StatusNotFound)
-	}
-
-	return h.okResponse(body)
-}
-
-func (h *Handler) LoginHandler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	creds := &struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	}{}
-
-	err := json.Unmarshal([]byte(req.Body), creds)
-	if err != nil {
-		return h.errResponse(err, http.StatusUnauthorized)
-	}
-
-	body, err := h.Login.Login(creds.Username, creds.Password)
-	if err != nil {
-		return h.errResponse(err, http.StatusUnauthorized)
 	}
 
 	return h.okResponse(body)
@@ -88,9 +69,28 @@ func (h *Handler) RegisterHandler(ctx context.Context, req events.APIGatewayProx
 		return h.errResponse(err, http.StatusBadRequest)
 	}
 
-	body, err := h.Register.Register(creds.Username, creds.Password)
+	body, err := h.register.Register(creds.Username, creds.Password)
 	if err != nil {
 		return h.errResponse(err, http.StatusBadRequest)
+	}
+
+	return h.okResponse(body)
+}
+
+func (h *Handler) LoginHandler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	creds := &struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}{}
+
+	err := json.Unmarshal([]byte(req.Body), creds)
+	if err != nil {
+		return h.errResponse(err, http.StatusUnauthorized)
+	}
+
+	body, err := h.login.Login(creds.Username, creds.Password)
+	if err != nil {
+		return h.errResponse(err, http.StatusUnauthorized)
 	}
 
 	return h.okResponse(body)
@@ -104,7 +104,7 @@ func (h *Handler) RefreshHandler(ctx context.Context, req events.APIGatewayProxy
 
 	refreshToken := strings.Split(val, " ")[1]
 
-	body, err := h.Refresh.Refresh(refreshToken)
+	body, err := h.refresh.Refresh(refreshToken)
 	if err != nil {
 		return h.errResponse(err, http.StatusUnauthorized)
 	}
@@ -113,7 +113,7 @@ func (h *Handler) RefreshHandler(ctx context.Context, req events.APIGatewayProxy
 }
 
 func (h *Handler) RotateKeysHandler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	err := h.RotateKeys.RotateKeys()
+	err := h.rotatekeys.RotateKeys()
 	if err != nil {
 		return h.errResponse(err, http.StatusInternalServerError)
 	}
