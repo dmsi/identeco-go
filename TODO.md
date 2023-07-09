@@ -28,6 +28,8 @@
 -   [ ] store refresh in DB
 -   [ ] TODO document env variables for both awslambda and httpserver
 -   [ ] when it comes to error it's not clear how to pin-point the issue. wrap all the errors unconditionally?
+-   [x] move AWS Lambda handlers to runtime
+-   [x] handlers.Handler naming using for both httpserver and awslambda is confusing. One way to fix is to name packages differently i.e. httphandlers vs awslambdahandlers. Another way to fix is flattern the structure of the runtime and move handlers, routers, etc to the awslambda and httpserver packages
 
 # Env
 

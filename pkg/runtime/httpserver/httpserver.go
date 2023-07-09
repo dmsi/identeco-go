@@ -12,8 +12,6 @@ import (
 	"github.com/dmsi/identeco/pkg/controllers/refresh"
 	"github.com/dmsi/identeco/pkg/controllers/register"
 	"github.com/dmsi/identeco/pkg/controllers/rotatekeys"
-	"github.com/dmsi/identeco/pkg/runtime/httpserver/handlers"
-	"github.com/dmsi/identeco/pkg/runtime/httpserver/router"
 	"github.com/dmsi/identeco/pkg/services/keys"
 	"github.com/dmsi/identeco/pkg/services/token"
 	"github.com/dmsi/identeco/pkg/storage"
@@ -33,14 +31,6 @@ const (
 	envRefreshTokenLifetime = "IDO_REFRESH_TOKEN_LIFETIME"
 	envIssClaim             = "IDO_CLAIM_ISS"
 )
-
-func newHandler() (*handlers.Handler, error) {
-	return nil, nil
-}
-
-func newRouter() (*router.Router, error) {
-	return nil, nil
-}
 
 func newLogger() *slog.Logger {
 	// Remove the directory from the source's filename.
@@ -157,22 +147,22 @@ func newController() (*controllers.Controller, error) {
 	}, nil
 }
 
-func NewRouter(mount string) (*router.Router, error) {
+func NewRouter(mount string) (*Router, error) {
 	c, err := newController()
 	if err != nil {
 		return nil, err
 	}
 
-	h := handlers.Handler{
-		Log:        c.Log,
-		JWKSets:    &jwksets.JWKSetsController{Controller: *c},
-		Register:   &register.RegisterController{Controller: *c},
-		Login:      &login.LoginController{Controller: *c},
-		Refresh:    &refresh.RefreshController{Controller: *c},
-		RotateKeys: &rotatekeys.RotateController{Controller: *c},
+	h := handler{
+		lg:         c.Log,
+		jwksets:    &jwksets.JWKSetsController{Controller: *c},
+		register:   &register.RegisterController{Controller: *c},
+		login:      &login.LoginController{Controller: *c},
+		refresh:    &refresh.RefreshController{Controller: *c},
+		rotatekeys: &rotatekeys.RotateController{Controller: *c},
 	}
 
-	r, err := router.New(mount, h)
+	r, err := newRouter(mount, h)
 	if err != nil {
 		return nil, err
 	}
