@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"github.com/dmsi/identeco/pkg/services/keys"
-	"github.com/dmsi/identeco/pkg/services/token"
-	"github.com/dmsi/identeco/pkg/storage"
+	"github.com/dmsi/identeco-go/pkg/services/keys"
+	"github.com/dmsi/identeco-go/pkg/services/token"
+	"github.com/dmsi/identeco-go/pkg/storage"
 	"golang.org/x/exp/slog"
 )
 

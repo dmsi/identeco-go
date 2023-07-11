@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/dmsi/identeco/pkg/runtime/awslambda"
+	"github.com/dmsi/identeco-go/pkg/runtime/awslambda"
 )
 
 var handler *awslambda.Handler

@@ -8,11 +8,11 @@ import (
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/dmsi/identeco/pkg/controllers/jwksets"
-	"github.com/dmsi/identeco/pkg/controllers/login"
-	"github.com/dmsi/identeco/pkg/controllers/refresh"
-	"github.com/dmsi/identeco/pkg/controllers/register"
-	"github.com/dmsi/identeco/pkg/controllers/rotatekeys"
+	"github.com/dmsi/identeco-go/pkg/controllers/jwksets"
+	"github.com/dmsi/identeco-go/pkg/controllers/login"
+	"github.com/dmsi/identeco-go/pkg/controllers/refresh"
+	"github.com/dmsi/identeco-go/pkg/controllers/register"
+	"github.com/dmsi/identeco-go/pkg/controllers/rotatekeys"
 	"golang.org/x/exp/slog"
 )
 
@@ -69,12 +69,12 @@ func (h *Handler) RegisterHandler(ctx context.Context, req events.APIGatewayProx
 		return h.errResponse(err, http.StatusBadRequest)
 	}
 
-	body, err := h.register.Register(creds.Username, creds.Password)
+	_, err = h.register.Register(creds.Username, creds.Password)
 	if err != nil {
 		return h.errResponse(err, http.StatusBadRequest)
 	}
 
-	return h.okResponse(body)
+	return h.okResponse(nil)
 }
 
 func (h *Handler) LoginHandler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {

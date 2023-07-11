@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/dmsi/identeco/pkg/runtime/httpserver"
+	"github.com/dmsi/identeco-go/pkg/runtime/httpserver"
 	_ "github.com/joho/godotenv/autoload"
 )
 

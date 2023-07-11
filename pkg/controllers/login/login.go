@@ -5,10 +5,10 @@ import (
 	"errors"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/dmsi/identeco/pkg/controllers"
+	"github.com/dmsi/identeco-go/pkg/controllers"
 	"golang.org/x/crypto/bcrypt"
 
-	e "github.com/dmsi/identeco/pkg/lib/err"
+	e "github.com/dmsi/identeco-go/pkg/lib/err"
 )
 
 type LoginController struct {
