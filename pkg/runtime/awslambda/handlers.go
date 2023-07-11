@@ -69,12 +69,12 @@ func (h *Handler) RegisterHandler(ctx context.Context, req events.APIGatewayProx
 		return h.errResponse(err, http.StatusBadRequest)
 	}
 
-	body, err := h.register.Register(creds.Username, creds.Password)
+	_, err = h.register.Register(creds.Username, creds.Password)
 	if err != nil {
 		return h.errResponse(err, http.StatusBadRequest)
 	}
 
-	return h.okResponse(body)
+	return h.okResponse(nil)
 }
 
 func (h *Handler) LoginHandler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
