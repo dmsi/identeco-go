@@ -7,8 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
-	e "github.com/dmsi/identeco/pkg/lib/err"
-	"github.com/dmsi/identeco/pkg/storage"
+	e "github.com/dmsi/identeco-go/pkg/lib/err"
+	"github.com/dmsi/identeco-go/pkg/storage"
 	"golang.org/x/exp/slog"
 )
 

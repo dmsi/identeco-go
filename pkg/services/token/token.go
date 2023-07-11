@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	e "github.com/dmsi/identeco/pkg/lib/err"
-	"github.com/dmsi/identeco/pkg/services/keys"
+	e "github.com/dmsi/identeco-go/pkg/lib/err"
+	"github.com/dmsi/identeco-go/pkg/services/keys"
 	"github.com/golang-jwt/jwt/v5"
 )
 

@@ -6,7 +6,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 
-	e "github.com/dmsi/identeco/pkg/lib/err"
+	e "github.com/dmsi/identeco-go/pkg/lib/err"
 )
 
 type KeyService struct {

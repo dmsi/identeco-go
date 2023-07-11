@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/dmsi/identeco/pkg/controllers"
-	"github.com/dmsi/identeco/pkg/storage"
+	"github.com/dmsi/identeco-go/pkg/controllers"
+	"github.com/dmsi/identeco-go/pkg/storage"
 	"golang.org/x/crypto/bcrypt"
 )
 

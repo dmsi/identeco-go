@@ -8,11 +8,11 @@ import (
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/dmsi/identeco/pkg/controllers/jwksets"
-	"github.com/dmsi/identeco/pkg/controllers/login"
-	"github.com/dmsi/identeco/pkg/controllers/refresh"
-	"github.com/dmsi/identeco/pkg/controllers/register"
-	"github.com/dmsi/identeco/pkg/controllers/rotatekeys"
+	"github.com/dmsi/identeco-go/pkg/controllers/jwksets"
+	"github.com/dmsi/identeco-go/pkg/controllers/login"
+	"github.com/dmsi/identeco-go/pkg/controllers/refresh"
+	"github.com/dmsi/identeco-go/pkg/controllers/register"
+	"github.com/dmsi/identeco-go/pkg/controllers/rotatekeys"
 	"golang.org/x/exp/slog"
 )
 

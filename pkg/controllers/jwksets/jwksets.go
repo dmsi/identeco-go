@@ -2,7 +2,7 @@ package jwksets
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/dmsi/identeco/pkg/controllers"
+	"github.com/dmsi/identeco-go/pkg/controllers"
 )
 
 type JWKSetsController struct {

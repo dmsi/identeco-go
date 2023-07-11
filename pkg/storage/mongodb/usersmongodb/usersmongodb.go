@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	e "github.com/dmsi/identeco/pkg/lib/err"
-	"github.com/dmsi/identeco/pkg/storage"
+	e "github.com/dmsi/identeco-go/pkg/lib/err"
+	"github.com/dmsi/identeco-go/pkg/storage"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"

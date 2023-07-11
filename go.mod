@@ -1,4 +1,4 @@
-module github.com/dmsi/identeco
+module github.com/dmsi/identeco-go
 
 go 1.19
 

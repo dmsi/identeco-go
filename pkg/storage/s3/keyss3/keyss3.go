@@ -8,8 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager/s3manageriface"
-	e "github.com/dmsi/identeco/pkg/lib/err"
-	"github.com/dmsi/identeco/pkg/storage"
+	e "github.com/dmsi/identeco-go/pkg/lib/err"
+	"github.com/dmsi/identeco-go/pkg/storage"
 	"golang.org/x/exp/slog"
 )
 

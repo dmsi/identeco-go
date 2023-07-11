@@ -3,9 +3,9 @@ package rotatekeys
 import (
 	"encoding/json"
 
-	"github.com/dmsi/identeco/pkg/controllers"
-	"github.com/dmsi/identeco/pkg/services/keys"
-	"github.com/dmsi/identeco/pkg/storage"
+	"github.com/dmsi/identeco-go/pkg/controllers"
+	"github.com/dmsi/identeco-go/pkg/services/keys"
+	"github.com/dmsi/identeco-go/pkg/storage"
 )
 
 // TODO rename to rotatekeys

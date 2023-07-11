@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/dmsi/identeco/pkg/controllers"
-	"github.com/dmsi/identeco/pkg/services/keys"
+	"github.com/dmsi/identeco-go/pkg/controllers"
+	"github.com/dmsi/identeco-go/pkg/services/keys"
 )
 
 type RefreshController struct {

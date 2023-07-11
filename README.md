@@ -45,8 +45,8 @@ The deployment manifests are located under `deployment/awslambda` directory. So 
 Deploy whole stack (default stage is 'dev')
 
 ```bash
-npm install
 cd deployments/awslambda
+npm install
 serverless deploy
 serverless invoke -f rotateKeys
 ```
