@@ -1,15 +1,3 @@
-# identeco-go
-
-## Quick start
-
-`npm i`
-`sls deploy`
-`sls deploy function -f login`
-`sls invoke -f rotatekeys`
-`sls logs -f rotatekeys`
-`aws s3 rm --recursive s3://identeco-dev-keys`
-`sls remove`
-
 # Identeco-go
 
 Go implementation of [identeco](https://github.com/dmsi/identeco). Can be deployed in AWS Lambda or as standalone HTTP service.
@@ -19,9 +7,9 @@ Goals:
 -   [x] Implement a service which issues JWT tokens
 -   [x] Use assymetric JWT-signing method
 -   [x] Rotate keys periodically
--   [x] Support deployment on `AWS Lambda` / `go1.x` runtime
--   [x] Support deployment as standalone HTTP service
--   [x] Use CI/CD github actions
+-   [x] Deployment on `AWS Lambda` / `go1.x` runtime
+-   [x] Deployment as standalone HTTP service
+-   [ ] CI/CD github actions
 -   [x] It is **NOT** designed to run at scale
 
 # Principal design
@@ -153,7 +141,9 @@ $ serverless deploy function -f register
 
 -   Supports only authentication (`username` claim), i.e. identeco confirms that the owner of the claim has `username`
 -   No email confirmation
+-   No password restrictions
 -   No OpenID support
+-   Not enough information in logs when error happens
 
 # Roadmap
 
