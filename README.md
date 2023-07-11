@@ -14,7 +14,13 @@ Goals:
 
 # Principal design
 
-[AWS Lambda](https://github.com/dmsi/identeco#principal-design)
+## AWS Lambda
+
+Here is an example how it is designed for [AWS Lambda](https://github.com/dmsi/identeco#principal-design). The lambda uses `s3` and `DynamoDB` as storage backends for keys and users.
+
+## Standalone HTTP server
+
+Standalone HTTP server is not tied up with AWS services so `MongoDB` is used as storage backend for both keys and users (it is still possible to use `s3` and `DynamoDB`).
 
 # Pre-reqs
 
@@ -28,7 +34,7 @@ npm install -g serverless
 
 # Operations
 
-## Deploy AWS Lambda
+## Deploy serverless in AWS Lambda
 
 The `serverless` framework is used as infrastructure and deployment orchestrator.
 The deployment manifests are located under `deployment/awslambda` directory. So all `serverless` commands must be executed from this directory.
@@ -39,6 +45,7 @@ The deployment manifests are located under `deployment/awslambda` directory. So 
 Deploy whole stack (default stage is 'dev')
 
 ```bash
+npm install
 cd deployments/awslambda
 serverless deploy
 serverless invoke -f rotateKeys
@@ -73,6 +80,10 @@ Monitor all your API routes with Serverless Console: run "serverless --console"
 ```
 
 ### Environment variables
+
+All environment variables are defined in `serverless.yml` manifest in `provider.environment` section. Those variables are accesible in each lambda function.
+
+## Run standalone HTTP server locally
 
 **TBD**
 
@@ -164,6 +175,6 @@ $ serverless deploy function -f register
 -   [x] Implement MongoDb storage backend for users and keys
 -   [x] Implement runtime and cmd for standalone HTTP server
 -   [x] Use crypto rand for private key generation
--   [ ] Put together documentation
+-   [ ] Put together the documentation
 -   [ ] Revisit `register` it should not return tokens, should return 204
 -   [ ] Change module name `github.com/dmsi/identeco` to `github.com/dmsi/identeco-go`
