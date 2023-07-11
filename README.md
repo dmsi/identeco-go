@@ -175,6 +175,6 @@ $ serverless deploy function -f register
 -   [x] Implement MongoDb storage backend for users and keys
 -   [x] Implement runtime and cmd for standalone HTTP server
 -   [x] Use crypto rand for private key generation
--   [ ] Put together the documentation
--   [ ] Revisit `register` it should not return tokens, should return 204
--   [ ] Change module name `github.com/dmsi/identeco` to `github.com/dmsi/identeco-go`
+-   [x] Put together the documentation
+-   [x] Revisit `register` it should not return tokens, should return 204
+-   [x] Change module name `github.com/dmsi/identeco` to `github.com/dmsi/identeco-go`
