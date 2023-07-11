@@ -10,104 +10,170 @@
 `aws s3 rm --recursive s3://identeco-dev-keys`
 `sls remove`
 
-## Getting started
+# Identeco-go
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+Go implementation of [identeco](https://github.com/dmsi/identeco). Can be deployed in AWS Lambda or as standalone HTTP service.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+Goals:
 
-## Add your files
+-   [x] Implement a service which issues JWT tokens
+-   [x] Use assymetric JWT-signing method
+-   [x] Rotate keys periodically
+-   [x] Support deployment on `AWS Lambda` / `go1.x` runtime
+-   [x] Support deployment as standalone HTTP service
+-   [x] Use CI/CD github actions
+-   [x] It is **NOT** designed to run at scale
 
--   [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
--   [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+# Principal design
 
+[AWS Lambda](https://github.com/dmsi/identeco#principal-design)
+
+# Pre-reqs
+
+-   nodejs (tested on v16.19.1)
+-   serverless installed globally (tested on 3.33.0)
+-   golang 1.x (tested on go1.20.5)
+
+```sh
+npm install -g serverless
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/dmsi/identeco-go.git
-git branch -M main
-git push -uf origin main
+
+# Operations
+
+## Deploy AWS Lambda
+
+The `serverless` framework is used as infrastructure and deployment orchestrator.
+The deployment manifests are located under `deployment/awslambda` directory. So all `serverless` commands must be executed from this directory.
+
+> **Note** before you deploy change `provider.profile` to match your desired AWS profile or delete in order to use the default profile.
+> Optionally change `provider.region` to reflect region of your choice.
+
+Deploy whole stack (default stage is 'dev')
+
+```bash
+cd deployments/awslambda
+serverless deploy
+serverless invoke -f rotateKeys
 ```
 
-## Integrate with your tools
+> **Note** rotateKeys function is trigerred periodically by CloudWatch events but in order to
+> rotate keys the first time it needs to be triggered manually right after the deployment.
 
--   [ ] [Set up project integrations](https://gitlab.com/dmsi/identeco-go/-/settings/integrations)
+Serverless will create AWS `cloudformation` with all the resources specified in `serverless.yml`.
+Example output
 
-## Collaborate with your team
+```bash
+$ serverless deploy
 
--   [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
--   [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
--   [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
--   [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
--   [ ] [Automatically merge when pipeline succeeds](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+Deploying identeco to stage dev (eu-west-1)
 
-## Test and Deploy
+✔ Service deployed to stack identeco-dev (58s)
 
-Use the built-in continuous integration in GitLab.
+endpoints:
+  GET - https://3yhosi5j8l.execute-api.eu-west-1.amazonaws.com/dev/.well-known/jwks.json
+  POST - https://3yhosi5j8l.execute-api.eu-west-1.amazonaws.com/dev/register
+  POST - https://3yhosi5j8l.execute-api.eu-west-1.amazonaws.com/dev/login
+  GET - https://3yhosi5j8l.execute-api.eu-west-1.amazonaws.com/dev/refresh
+functions:
+  getJwks: identeco-dev-getJwks (17 MB)
+  register: identeco-dev-register (17 MB)
+  login: identeco-dev-login (17 MB)
+  refresh: identeco-dev-refresh (17 MB)
+  rotateKeys: identeco-dev-rotateKeys (17 MB)
 
--   [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
--   [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
--   [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
--   [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
--   [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+Monitor all your API routes with Serverless Console: run "serverless --console"
+```
 
----
+### Environment variables
 
-# Editing this README
+**TBD**
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
+## Deploy as standalone HTTP server in AWS EC2
 
-## Suggestions for a good README
+**TBD**
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+### Environment variables
 
-## Name
+**TBD**
 
-Choose a self-explaining name for your project.
+### Run python test
 
-## Description
+> **Note** `python3.9+` is required. The `venv` module can be used in order to localize the dependencies.
 
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+The following snippet can be used in order to run the tests in `bash` environment
 
-## Badges
+```bash
+cd ./test
 
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+# Setup pyton venv and activate it
+python -m venv myenv
 
-## Visuals
+# Setup python dependencies
+source myenv/bin/activate
+pip install -r requirements.txt
 
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+# Run the test
+export IDENTECO_API_ENDPOINT=https://3yhosi5j8l.execute-api.eu-west-1.amazonaws.com/dev
+python apitest.py
+```
 
-## Installation
+> **Note** `IDENTECO_API_ENDPOINT` env variable must be set prior running the test.
+> The value must be taken from the `serverless deploy` output including stage (i.e. `/dev`)
+> but **excluding** the tailing `/` symbol.
+> For example: `export IDENTECO_API_ENDPOINT=https://3yhosi5j8l.execute-api.eu-west-1.amazonaws.com/dev`
 
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+## Remove
 
-## Usage
+Remove whole stack
 
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+> **Note** Manually remove all object from s3 bucket before stack deletion.
+> i.e. `aws s3 rm s3://identeco-keys --recursive`
 
-## Support
+This will remove all underlying resources from the `cloudformation` stack.
 
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+```bash
+$ serverless remove
+```
 
-## Roadmap
+## Deploy a single lambda function
 
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+The following will deploy `register` function
 
-## Contributing
+```bash
+$ serverless deploy function -f register
+```
 
-State if you are open to contributions and what your requirements are for accepting them.
+# Features
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+-   Registraion of username/password
+-   Using assymetric RS256 JWK algorithm
+-   Automatic keys rotation
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+# Known Issues and Limitations
 
-## Authors and acknowledgment
+-   Supports only authentication (`username` claim), i.e. identeco confirms that the owner of the claim has `username`
+-   No email confirmation
+-   No OpenID support
 
-Show your appreciation to those who have contributed to the project.
+# Roadmap
 
-## License
+## v0.1.0-alpha - v0.1.3-dev
 
-For open source projects, say how it is licensed.
+-   [x] Port from [identeco](https://github.com/dmsi/identeco)
+-   [x] Basic functionality
 
-## Project status
+## v0.1.4-alpha
 
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+-   [x] Add slog logger
+-   [x] Move serverless to deployment/awslambda directory
+-   [x] Wrap errors to provide more context
+-   [x] Inject all dependencies in `pkg/runtime`
+-   [x] Move AWS Lambda handlers to `pkg/runtime/awslambda`
+-   [x] Refactor and separate business logic from AWS Lambda handlers
+-   [x] Implement main() for each handler/http server in `cmd`, check [go project layout](https://github.com/golang-standards/project-layout)
+-   [x] Implement MongoDb storage backend for users and keys
+-   [x] Implement runtime and cmd for standalone HTTP server
+-   [x] Use crypto rand for private key generation
+-   [ ] Put together documentation
+-   [ ] Revisit `register` it should not return tokens, should return 204
+-   [ ] Change module name `github.com/dmsi/identeco` to `github.com/dmsi/identeco-go`
