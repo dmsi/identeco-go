@@ -106,9 +106,9 @@ cd ./test
 
 # Setup pyton venv and activate it
 python -m venv myenv
+source myenv/bin/activate
 
 # Setup python dependencies
-source myenv/bin/activate
 pip install -r requirements.txt
 
 # Run the test
