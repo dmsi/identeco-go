@@ -1,143 +1,158 @@
 plugins:
-    - serverless-iam-roles-per-function
+  - serverless-iam-roles-per-function
 
-service: identeco
+service: identeco-go
 
 frameworkVersion: '3'
 
 provider:
-    name: aws
-    region: eu-west-1
-    profile: identeco
-    runtime: go1.x
-    environment:
-        IDO_DEPLOYMENT_STAGE: ${sls:stage}
-        IDO_TABLE_NAME: ${self:service}-${sls:stage}-users
-        IDO_BUCKET_NAME: ${self:service}-${sls:stage}-keys
-        IDO_PRIVATE_KEY_NAME: 'keypair.pem'
-        IDO_JWKS_NAME: 'jwks.json'
-        IDO_PRIVATE_KEY_LENGTH: 2048
-        IDO_PRIVATE_KEY_LIFETIME: '30 days'
-        IDO_ACCESS_TOKEN_LIFETIME: '60m'
-        IDO_REFRESH_TOKEN_LIFETIME: '720h'
-        IDO_CLAIM_ISS: https://github.com/dmsi/identeco
+  name: aws
+  region: eu-west-1
+  profile: identeco
+  runtime: go1.x
+  environment:
+    IDO_DEPLOYMENT_STAGE: ${sls:stage}
+    IDO_TABLE_NAME: ${self:service}-${sls:stage}-users
+    IDO_BUCKET_NAME: ${self:service}-${sls:stage}-keys
+    IDO_PRIVATE_KEY_NAME: 'keypair.pem'
+    IDO_JWKS_NAME: 'jwks.json'
+    IDO_PRIVATE_KEY_LENGTH: 2048
+    IDO_PRIVATE_KEY_LIFETIME: '30 days'
+    IDO_ACCESS_TOKEN_LIFETIME: '60m'
+    IDO_REFRESH_TOKEN_LIFETIME: '720h'
+    IDO_CLAIM_ISS: https://github.com/dmsi/identeco
 
 package:
-    patterns:
-        - '!./**'
-        - ../../bin/*
+  individually: true
+  patterns:
+    - '!./**'
 
 custom:
-    usersTableArn:
-        Fn::GetAtt: [usersTable, Arn]
-    privateKeyObjectArn:
-        Fn::Join:
-            - '/'
-            - - Fn::GetAtt: [keysBucket, Arn]
-              - ${self:provider.environment.IDO_PRIVATE_KEY_NAME}
-    jwksObjectArn:
-        Fn::Join:
-            - '/'
-            - - Fn::GetAtt: [keysBucket, Arn]
-              - ${self:provider.environment.IDO_JWKS_NAME}
+  usersTableArn:
+    Fn::GetAtt: [usersTable, Arn]
+  privateKeyObjectArn:
+    Fn::Join:
+      - '/'
+      - - Fn::GetAtt: [keysBucket, Arn]
+        - ${self:provider.environment.IDO_PRIVATE_KEY_NAME}
+  jwksObjectArn:
+    Fn::Join:
+      - '/'
+      - - Fn::GetAtt: [keysBucket, Arn]
+        - ${self:provider.environment.IDO_JWKS_NAME}
 
 functions:
-    jwksets:
-        handler: bin/jwksets
-        events:
-            - http:
-                  method: get
-                  path: '.well-known/jwks.json'
-        iamRoleStatements:
-            - Effect: Allow
-              Action:
-                  - s3:GetObject
-              Resource:
-                  - ${self:custom.jwksObjectArn}
+  jwksets:
+    handler: bin/jwksets
+    events:
+      - http:
+          method: get
+          path: '.well-known/jwks.json'
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - s3:GetObject
+        Resource:
+          - ${self:custom.jwksObjectArn}
+    package:
+      patterns:
+        - ../../bin/jwksets
 
-    register:
-        handler: bin/register
-        events:
-            - http:
-                  method: post
-                  path: register
-        iamRoleStatements:
-            - Effect: Allow
-              Action:
-                  - dynamodb:PutItem
-              Resource: ${self:custom.usersTableArn}
-            - Effect: Allow
-              Action:
-                  - s3:GetObject
-              Resource:
-                  - ${self:custom.privateKeyObjectArn}
+  register:
+    handler: bin/register
+    events:
+      - http:
+          method: post
+          path: register
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+        Resource: ${self:custom.usersTableArn}
+      - Effect: Allow
+        Action:
+          - s3:GetObject
+        Resource:
+          - ${self:custom.privateKeyObjectArn}
+    package:
+      patterns:
+        - ../../bin/register
 
-    login:
-        handler: bin/login
-        events:
-            - http:
-                  method: post
-                  path: login
-        iamRoleStatements:
-            - Effect: Allow
-              Action:
-                  - dynamodb:GetItem
-              Resource: ${self:custom.usersTableArn}
-            - Effect: Allow
-              Action:
-                  - s3:GetObject
-              Resource:
-                  - ${self:custom.privateKeyObjectArn}
-                  - ${self:custom.jwksObjectArn}
+  login:
+    handler: bin/login
+    events:
+      - http:
+          method: post
+          path: login
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+        Resource: ${self:custom.usersTableArn}
+      - Effect: Allow
+        Action:
+          - s3:GetObject
+        Resource:
+          - ${self:custom.privateKeyObjectArn}
+          - ${self:custom.jwksObjectArn}
+    package:
+      patterns:
+        - ../../bin/login
 
-    refresh:
-        handler: bin/refresh
-        events:
-            - http:
-                  method: get
-                  path: refresh
-        iamRoleStatements:
-            - Effect: Allow
-              Action:
-                  - dynamodb:GetItem
-              Resource: ${self:custom.usersTableArn}
-            - Effect: Allow
-              Action:
-                  - s3:GetObject
-              Resource:
-                  - ${self:custom.privateKeyObjectArn}
-                  - ${self:custom.jwksObjectArn}
+  refresh:
+    handler: bin/refresh
+    events:
+      - http:
+          method: get
+          path: refresh
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+        Resource: ${self:custom.usersTableArn}
+      - Effect: Allow
+        Action:
+          - s3:GetObject
+        Resource:
+          - ${self:custom.privateKeyObjectArn}
+          - ${self:custom.jwksObjectArn}
+    package:
+      patterns:
+        - ../../bin/refresh
 
-    rotatekeys:
-        handler: bin/rotatekeys
-        events:
-            - schedule: rate(${self:provider.environment.IDO_PRIVATE_KEY_LIFETIME})
-        iamRoleStatements:
-            - Effect: Allow
-              Action:
-                  - s3:GetObject
-                  - s3:PutObject
-              Resource:
-                  - ${self:custom.privateKeyObjectArn}
-                  - ${self:custom.jwksObjectArn}
+  rotatekeys:
+    handler: bin/rotatekeys
+    events:
+      - schedule: rate(${self:provider.environment.IDO_PRIVATE_KEY_LIFETIME})
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - s3:GetObject
+          - s3:PutObject
+        Resource:
+          - ${self:custom.privateKeyObjectArn}
+          - ${self:custom.jwksObjectArn}
+    package:
+      patterns:
+        - ../../bin/rotatekeys
 
 resources:
-    Resources:
-        usersTable:
-            Type: AWS::DynamoDB::Table
-            Properties:
-                TableName: ${self:provider.environment.IDO_TABLE_NAME}
-                AttributeDefinitions:
-                    - AttributeName: username
-                      AttributeType: S
-                KeySchema:
-                    - AttributeName: username
-                      KeyType: HASH
-                ProvisionedThroughput:
-                    ReadCapacityUnits: 1
-                    WriteCapacityUnits: 1
-        keysBucket:
-            Type: AWS::S3::Bucket
-            Properties:
-                BucketName: ${self:provider.environment.IDO_BUCKET_NAME}
-                AccessControl: Private
+  Resources:
+    usersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.IDO_TABLE_NAME}
+        AttributeDefinitions:
+          - AttributeName: username
+            AttributeType: S
+        KeySchema:
+          - AttributeName: username
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+    keysBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:provider.environment.IDO_BUCKET_NAME}
+        AccessControl: Private

@@ -7,11 +7,7 @@ import (
 	"time"
 
 	"github.com/dmsi/identeco-go/pkg/controllers"
-	"github.com/dmsi/identeco-go/pkg/controllers/jwksets"
-	"github.com/dmsi/identeco-go/pkg/controllers/login"
-	"github.com/dmsi/identeco-go/pkg/controllers/refresh"
-	"github.com/dmsi/identeco-go/pkg/controllers/register"
-	"github.com/dmsi/identeco-go/pkg/controllers/rotatekeys"
+	e "github.com/dmsi/identeco-go/pkg/lib/err"
 	"github.com/dmsi/identeco-go/pkg/services/keys"
 	"github.com/dmsi/identeco-go/pkg/services/token"
 	"github.com/dmsi/identeco-go/pkg/storage"
@@ -31,6 +27,10 @@ const (
 	envRefreshTokenLifetime = "IDO_REFRESH_TOKEN_LIFETIME"
 	envIssClaim             = "IDO_CLAIM_ISS"
 )
+
+func wrap(name string, err error) error {
+	return e.Wrap("runtime.httpserver."+name, err)
+}
 
 func newLogger() *slog.Logger {
 	// Remove the directory from the source's filename.
@@ -65,7 +65,7 @@ func newLogger() *slog.Logger {
 func newKeyService(lg *slog.Logger) (*keys.KeyService, error) {
 	bits, err := strconv.Atoi(os.Getenv(envPrivateKeyLength))
 	if err != nil {
-		return nil, err
+		return nil, wrap("newKeyService", err)
 	}
 
 	return &keys.KeyService{
@@ -76,17 +76,17 @@ func newKeyService(lg *slog.Logger) (*keys.KeyService, error) {
 func newTokenService(lg *slog.Logger) (*token.TokenService, error) {
 	accessTokenLifetime, err := time.ParseDuration(os.Getenv(envAccessTokenLifetime))
 	if err != nil {
-		return nil, err
+		return nil, wrap("newTokenService", err)
 	}
 
 	refreshTokenLifetime, err := time.ParseDuration(os.Getenv(envRefreshTokenLifetime))
 	if err != nil {
-		return nil, err
+		return nil, wrap("newTokenService", err)
 	}
 
 	k, err := newKeyService(lg)
 	if err != nil {
-		return nil, err
+		return nil, wrap("newTokenService", err)
 	}
 
 	return &token.TokenService{
@@ -100,7 +100,7 @@ func newTokenService(lg *slog.Logger) (*token.TokenService, error) {
 func newKeyStorage(lg *slog.Logger) (storage.KeysStorage, error) {
 	k, err := keysmongodb.New(lg, os.Getenv(envMongoURL), "main", "keys")
 	if err != nil {
-		return nil, err
+		return nil, wrap("newKeyStorage", err)
 	}
 
 	return k, nil
@@ -109,7 +109,7 @@ func newKeyStorage(lg *slog.Logger) (storage.KeysStorage, error) {
 func newUserStorage(lg *slog.Logger) (storage.UsersStorage, error) {
 	u, err := usersmongodb.New(lg, os.Getenv(envMongoURL), mongoDatabase, mongoUsersCollection)
 	if err != nil {
-		return nil, err
+		return nil, wrap("newUserStorage", err)
 	}
 
 	return u, nil
@@ -120,22 +120,22 @@ func newController() (*controllers.Controller, error) {
 
 	userStorage, err := newUserStorage(lg)
 	if err != nil {
-		return nil, err
+		return nil, wrap("newController", err)
 	}
 
 	keyStorage, err := newKeyStorage(lg)
 	if err != nil {
-		return nil, err
+		return nil, wrap("newController", err)
 	}
 
 	tokenService, err := newTokenService(lg)
 	if err != nil {
-		return nil, err
+		return nil, wrap("newController", err)
 	}
 
 	keyService, err := newKeyService(lg)
 	if err != nil {
-		return nil, err
+		return nil, wrap("newController", err)
 	}
 
 	return &controllers.Controller{
@@ -150,21 +150,21 @@ func newController() (*controllers.Controller, error) {
 func NewRouter(mount string) (*Router, error) {
 	c, err := newController()
 	if err != nil {
-		return nil, err
+		return nil, wrap("NewRouter", err)
 	}
 
 	h := handler{
 		lg:         c.Log,
-		jwksets:    &jwksets.JWKSetsController{Controller: *c},
-		register:   &register.RegisterController{Controller: *c},
-		login:      &login.LoginController{Controller: *c},
-		refresh:    &refresh.RefreshController{Controller: *c},
-		rotatekeys: &rotatekeys.RotateController{Controller: *c},
+		jwksets:    &controllers.JWKSetsController{Controller: *c},
+		register:   &controllers.RegisterController{Controller: *c},
+		login:      &controllers.LoginController{Controller: *c},
+		refresh:    &controllers.RefreshController{Controller: *c},
+		rotatekeys: &controllers.RotateController{Controller: *c},
 	}
 
 	r, err := newRouter(mount, h)
 	if err != nil {
-		return nil, err
+		return nil, wrap("NewRouter", err)
 	}
 
 	return r, nil

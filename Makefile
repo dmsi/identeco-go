@@ -1,4 +1,4 @@
-default: httpserver
+default: httpserver awslambda
 
 all: awslambda
 
@@ -17,6 +17,3 @@ clean:
 
 test:
 	go test ./...
-
-run:
-	@go run .

@@ -178,3 +178,15 @@ $ serverless deploy function -f register
 -   [x] Put together the documentation
 -   [x] Revisit `register` it should not return tokens, should return 204
 -   [x] Change module name `github.com/dmsi/identeco` to `github.com/dmsi/identeco-go`
+
+## v0.1.5-alpha
+
+-   [x] Skipped to align with [identeco](https://github.com/dmsi/identeco)
+
+## v0.1.6-alpha
+
+-   [x] Fix security vulnerabilities
+-   [x] Package functions individually
+-   [x] Split handlers to separate files
+-   [x] Moved all controllers to the same `controller` package
+-   [ ] Better context for errors. Pretty stack dump?
