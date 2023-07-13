@@ -29,7 +29,7 @@ func encodeBigInt(n big.Int) (string, error) {
 func decodeBigInt(s string) (*big.Int, error) {
 	bytes, err := base64.RawURLEncoding.DecodeString(s)
 	if err != nil {
-		return nil, err
+		return nil, wrap("decodeBigInt", err)
 	}
 	return new(big.Int).SetBytes(bytes), nil
 }
@@ -46,7 +46,7 @@ func encodeModulus(n big.Int) (string, error) {
 func decodeExponent(s string) (int, error) {
 	e, err := decodeBigInt(s)
 	if err != nil {
-		return 0, err
+		return 0, wrap("decodeExponent", err)
 	}
 	return int(e.Int64()), nil
 }
@@ -61,12 +61,12 @@ func (k *KeyService) PublicKeyToJWK(pub rsa.PublicKey) (*JWK, error) {
 
 	e, err := encodeExponent(pub.E)
 	if err != nil {
-		return nil, err
+		return nil, wrap("PulicKeyToJWK", err)
 	}
 
 	n, err := encodeModulus(*pub.N)
 	if err != nil {
-		return nil, err
+		return nil, wrap("PublicKeyToJWK", err)
 	}
 
 	return &JWK{
@@ -82,12 +82,12 @@ func (k *KeyService) PublicKeyToJWK(pub rsa.PublicKey) (*JWK, error) {
 func (k *KeyService) JWKToPublicKey(jwk JWK) (*rsa.PublicKey, error) {
 	e, err := decodeExponent(jwk.E)
 	if err != nil {
-		return nil, err
+		return nil, wrap("JWKToPublicKey", err)
 	}
 
 	n, err := decodeModulus(jwk.N)
 	if err != nil {
-		return nil, err
+		return nil, wrap("JWKToPublicKey", err)
 	}
 
 	return &rsa.PublicKey{
@@ -105,12 +105,12 @@ func (k *KeyService) JWKSetsToPublicKey(jwkSets JWKSets, kid string) (*rsa.Publi
 		}
 	}
 	if idx == -1 {
-		return nil, fmt.Errorf("key with kid %s not found", kid)
+		return nil, wrap("JWKSetsToPublicKey", fmt.Errorf("key with kid %s not found", kid))
 	}
 
 	publicKey, err := k.JWKToPublicKey(jwkSets.Keys[idx])
 	if err != nil {
-		return nil, err
+		return nil, wrap("JWKSetsToPublicKey", err)
 	}
 
 	return publicKey, nil

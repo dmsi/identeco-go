@@ -13,14 +13,14 @@ type KeyService struct {
 	PrivateKeyBits int
 }
 
-func op(name string) string {
-	return "services.keys." + name
+func wrap(name string, err error) error {
+	return e.Wrap("services.keys."+name, err)
 }
 
 func (k *KeyService) GenerateKey() (*rsa.PrivateKey, error) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, k.PrivateKeyBits)
 	if err != nil {
-		return nil, e.Wrap(op("GenerateKey"), err)
+		return nil, wrap("GenerateKey", err)
 	}
 
 	return privateKey, nil
@@ -41,7 +41,7 @@ func (k *KeyService) PrivateKeyDecodePEM(pemdata []byte) (*rsa.PrivateKey, error
 	pemBlock, _ := pem.Decode(pemdata)
 	privateKey, err := x509.ParsePKCS1PrivateKey(pemBlock.Bytes)
 	if err != nil {
-		return nil, e.Wrap(op("PrivateKeyDecodePEM"), err)
+		return nil, wrap("PrivateKeyDecodePEM", err)
 	}
 
 	return privateKey, nil

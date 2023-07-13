@@ -12,6 +12,7 @@ import (
 	"github.com/dmsi/identeco-go/pkg/controllers/refresh"
 	"github.com/dmsi/identeco-go/pkg/controllers/register"
 	"github.com/dmsi/identeco-go/pkg/controllers/rotatekeys"
+	e "github.com/dmsi/identeco-go/pkg/lib/err"
 	"github.com/dmsi/identeco-go/pkg/services/keys"
 	"github.com/dmsi/identeco-go/pkg/services/token"
 	"github.com/dmsi/identeco-go/pkg/storage"
@@ -32,6 +33,10 @@ const (
 	envJWKSetsName          = "IDO_JWKS_NAME"
 )
 
+func wrap(name string, err error) error {
+	return e.Wrap("runtime.awslambda."+name, err)
+}
+
 func newLogger() *slog.Logger {
 	// Remove the directory from the source's filename.
 	replace := func(groups []string, a slog.Attr) slog.Attr {
@@ -50,7 +55,7 @@ func newLogger() *slog.Logger {
 		src = true
 	}
 
-	lg := slog.New(slog.NewJSONHandler(
+	lg := slog.New(slog.NewTextHandler(
 		os.Stdout,
 		&slog.HandlerOptions{
 			AddSource:   src,
@@ -65,7 +70,7 @@ func newLogger() *slog.Logger {
 func newKeyService(lg *slog.Logger) (*keys.KeyService, error) {
 	bits, err := strconv.Atoi(os.Getenv(envPrivateKeyLength))
 	if err != nil {
-		return nil, err
+		return nil, wrap("newKeyService", err)
 	}
 
 	return &keys.KeyService{
@@ -76,17 +81,17 @@ func newKeyService(lg *slog.Logger) (*keys.KeyService, error) {
 func newTokenService(lg *slog.Logger) (*token.TokenService, error) {
 	accessTokenLifetime, err := time.ParseDuration(os.Getenv(envAccessTokenLifetime))
 	if err != nil {
-		return nil, err
+		return nil, wrap("newTokenService", err)
 	}
 
 	refreshTokenLifetime, err := time.ParseDuration(os.Getenv(envRefreshTokenLifetime))
 	if err != nil {
-		return nil, err
+		return nil, wrap("newTokenService", err)
 	}
 
 	k, err := newKeyService(lg)
 	if err != nil {
-		return nil, err
+		return nil, wrap("newTokenService", err)
 	}
 
 	return &token.TokenService{
@@ -115,22 +120,22 @@ func newController() (*controllers.Controller, error) {
 
 	userStorage, err := newUserStorage(lg)
 	if err != nil {
-		return nil, err
+		return nil, wrap("newController", err)
 	}
 
 	keyStorage, err := newKeyStorage(lg)
 	if err != nil {
-		return nil, err
+		return nil, wrap("newController", err)
 	}
 
 	tokenService, err := newTokenService(lg)
 	if err != nil {
-		return nil, err
+		return nil, wrap("newController", err)
 	}
 
 	keyService, err := newKeyService(lg)
 	if err != nil {
-		return nil, err
+		return nil, wrap("newController", err)
 	}
 
 	return &controllers.Controller{
@@ -145,7 +150,7 @@ func newController() (*controllers.Controller, error) {
 func NewJWKSetsHandler() (*Handler, error) {
 	c, err := newController()
 	if err != nil {
-		return nil, err
+		return nil, wrap("NewJWKSetsHandler", err)
 	}
 
 	return &Handler{
@@ -157,7 +162,7 @@ func NewJWKSetsHandler() (*Handler, error) {
 func NewRegisterHandler() (*Handler, error) {
 	c, err := newController()
 	if err != nil {
-		return nil, err
+		return nil, wrap("NewRegisterHandler", err)
 	}
 
 	return &Handler{
@@ -169,7 +174,7 @@ func NewRegisterHandler() (*Handler, error) {
 func NewLoginHandler() (*Handler, error) {
 	c, err := newController()
 	if err != nil {
-		return nil, err
+		return nil, wrap("NewLoginHandler", err)
 	}
 
 	return &Handler{
@@ -181,7 +186,7 @@ func NewLoginHandler() (*Handler, error) {
 func NewRefreshHandler() (*Handler, error) {
 	c, err := newController()
 	if err != nil {
-		return nil, err
+		return nil, wrap("NewRefreshHandler", err)
 	}
 
 	return &Handler{
@@ -193,7 +198,7 @@ func NewRefreshHandler() (*Handler, error) {
 func NewRotateKeysHandler() (*Handler, error) {
 	c, err := newController()
 	if err != nil {
-		return nil, err
+		return nil, wrap("NewRotateKeysHandler", err)
 	}
 
 	return &Handler{

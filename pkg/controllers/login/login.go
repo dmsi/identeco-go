@@ -11,12 +11,12 @@ import (
 	e "github.com/dmsi/identeco-go/pkg/lib/err"
 )
 
-type LoginController struct {
-	controllers.Controller
+func wrap(name string, err error) error {
+	return e.Wrap("controllers.login."+name, err)
 }
 
-func op(name string) string {
-	return "controllers.login." + name
+type LoginController struct {
+	controllers.Controller
 }
 
 func comparePassword(password, hash string) bool {
@@ -34,37 +34,37 @@ func (l *LoginController) Login(username, password string) (*string, error) {
 	// Read data
 	keyData, err := l.KeyStorage.ReadPrivateKey()
 	if err != nil {
-		return nil, err
+		return nil, wrap("Login", err)
 	}
 
 	privateKey, err := l.KeyService.PrivateKeyDecodePEM(keyData.Data)
 	if err != nil {
-		return nil, err
+		return nil, wrap("Login", err)
 	}
 
 	// TODO user not found -> return error
 	user, err := l.UserStorage.ReadUserData(username)
 	if err != nil {
 		lg.Error("read user", "error", err)
-		return nil, err
+		return nil, wrap("Login", err)
 	}
 
 	// Logic
 	if !comparePassword(password, user.Hash) {
 		lg.Info("invalid password")
-		return nil, e.Wrap(op("Login"), errors.New("invalid password"))
+		return nil, wrap("Login", errors.New("invalid password"))
 	}
 
 	// TODO: store the refresh token
 	tokens, err := l.TokenService.IssueTokens(username, privateKey)
 	if err != nil {
 		lg.Error("issue tokens", "error", err)
-		return nil, err
+		return nil, wrap("Login", err)
 	}
 
 	body, err := json.Marshal(tokens)
 	if err != nil {
-		return nil, e.Wrap(op("Login"), err)
+		return nil, wrap("Login", err)
 	}
 
 	return aws.String(string(body)), nil
