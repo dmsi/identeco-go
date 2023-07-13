@@ -7,11 +7,6 @@ import (
 	"time"
 
 	"github.com/dmsi/identeco-go/pkg/controllers"
-	"github.com/dmsi/identeco-go/pkg/controllers/jwksets"
-	"github.com/dmsi/identeco-go/pkg/controllers/login"
-	"github.com/dmsi/identeco-go/pkg/controllers/refresh"
-	"github.com/dmsi/identeco-go/pkg/controllers/register"
-	"github.com/dmsi/identeco-go/pkg/controllers/rotatekeys"
 	e "github.com/dmsi/identeco-go/pkg/lib/err"
 	"github.com/dmsi/identeco-go/pkg/services/keys"
 	"github.com/dmsi/identeco-go/pkg/services/token"
@@ -155,7 +150,7 @@ func NewJWKSetsHandler() (*Handler, error) {
 
 	return &Handler{
 		lg:      c.Log,
-		jwksets: &jwksets.JWKSetsController{Controller: *c},
+		jwksets: &controllers.JWKSetsController{Controller: *c},
 	}, nil
 }
 
@@ -167,7 +162,7 @@ func NewRegisterHandler() (*Handler, error) {
 
 	return &Handler{
 		lg:       c.Log,
-		register: &register.RegisterController{Controller: *c},
+		register: &controllers.RegisterController{Controller: *c},
 	}, nil
 }
 
@@ -179,7 +174,7 @@ func NewLoginHandler() (*Handler, error) {
 
 	return &Handler{
 		lg:    c.Log,
-		login: &login.LoginController{Controller: *c},
+		login: &controllers.LoginController{Controller: *c},
 	}, nil
 }
 
@@ -191,7 +186,7 @@ func NewRefreshHandler() (*Handler, error) {
 
 	return &Handler{
 		lg:      c.Log,
-		refresh: &refresh.RefreshController{Controller: *c},
+		refresh: &controllers.RefreshController{Controller: *c},
 	}, nil
 }
 
@@ -203,6 +198,6 @@ func NewRotateKeysHandler() (*Handler, error) {
 
 	return &Handler{
 		lg:         c.Log,
-		rotatekeys: &rotatekeys.RotateController{Controller: *c},
+		rotatekeys: &controllers.RotateController{Controller: *c},
 	}, nil
 }

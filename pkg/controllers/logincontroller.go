@@ -1,22 +1,15 @@
-package login
+package controllers
 
 import (
 	"encoding/json"
 	"errors"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/dmsi/identeco-go/pkg/controllers"
 	"golang.org/x/crypto/bcrypt"
-
-	e "github.com/dmsi/identeco-go/pkg/lib/err"
 )
 
-func wrap(name string, err error) error {
-	return e.Wrap("controllers.login."+name, err)
-}
-
 type LoginController struct {
-	controllers.Controller
+	Controller
 }
 
 func comparePassword(password, hash string) bool {
@@ -28,22 +21,22 @@ func comparePassword(password, hash string) bool {
 	return true
 }
 
-func (l *LoginController) Login(username, password string) (*string, error) {
-	lg := l.Log.With("user", username)
+func (c *LoginController) Login(username, password string) (*string, error) {
+	lg := c.Log.With("user", username)
 
 	// Read data
-	keyData, err := l.KeyStorage.ReadPrivateKey()
+	keyData, err := c.KeyStorage.ReadPrivateKey()
 	if err != nil {
 		return nil, wrap("Login", err)
 	}
 
-	privateKey, err := l.KeyService.PrivateKeyDecodePEM(keyData.Data)
+	privateKey, err := c.KeyService.PrivateKeyDecodePEM(keyData.Data)
 	if err != nil {
 		return nil, wrap("Login", err)
 	}
 
 	// TODO user not found -> return error
-	user, err := l.UserStorage.ReadUserData(username)
+	user, err := c.UserStorage.ReadUserData(username)
 	if err != nil {
 		lg.Error("read user", "error", err)
 		return nil, wrap("Login", err)
@@ -55,8 +48,7 @@ func (l *LoginController) Login(username, password string) (*string, error) {
 		return nil, wrap("Login", errors.New("invalid password"))
 	}
 
-	// TODO: store the refresh token
-	tokens, err := l.TokenService.IssueTokens(username, privateKey)
+	tokens, err := c.TokenService.IssueTokens(username, privateKey)
 	if err != nil {
 		lg.Error("issue tokens", "error", err)
 		return nil, wrap("Login", err)

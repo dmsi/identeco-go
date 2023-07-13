@@ -7,11 +7,6 @@ import (
 	"time"
 
 	"github.com/dmsi/identeco-go/pkg/controllers"
-	"github.com/dmsi/identeco-go/pkg/controllers/jwksets"
-	"github.com/dmsi/identeco-go/pkg/controllers/login"
-	"github.com/dmsi/identeco-go/pkg/controllers/refresh"
-	"github.com/dmsi/identeco-go/pkg/controllers/register"
-	"github.com/dmsi/identeco-go/pkg/controllers/rotatekeys"
 	e "github.com/dmsi/identeco-go/pkg/lib/err"
 	"github.com/dmsi/identeco-go/pkg/services/keys"
 	"github.com/dmsi/identeco-go/pkg/services/token"
@@ -160,11 +155,11 @@ func NewRouter(mount string) (*Router, error) {
 
 	h := handler{
 		lg:         c.Log,
-		jwksets:    &jwksets.JWKSetsController{Controller: *c},
-		register:   &register.RegisterController{Controller: *c},
-		login:      &login.LoginController{Controller: *c},
-		refresh:    &refresh.RefreshController{Controller: *c},
-		rotatekeys: &rotatekeys.RotateController{Controller: *c},
+		jwksets:    &controllers.JWKSetsController{Controller: *c},
+		register:   &controllers.RegisterController{Controller: *c},
+		login:      &controllers.LoginController{Controller: *c},
+		refresh:    &controllers.RefreshController{Controller: *c},
+		rotatekeys: &controllers.RotateController{Controller: *c},
 	}
 
 	r, err := newRouter(mount, h)

@@ -186,4 +186,6 @@ $ serverless deploy function -f register
 ## v0.1.6-alpha
 
 -   [x] Package functions individually
--   [ ] Better context for errors
+-   [x] Split handlers to separate files
+-   [x] Moved all controllers to the same `controller` package
+-   [ ] Better context for errors. Pretty stack dump?
