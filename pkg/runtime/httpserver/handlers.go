@@ -32,7 +32,7 @@ func (h *handler) okResponse(body *string, w http.ResponseWriter, r *http.Reques
 	if body != nil {
 		w.Write([]byte(*body))
 	} else {
-		w.WriteHeader(http.StatusOK)
+		w.WriteHeader(http.StatusNoContent)
 	}
 }
 
