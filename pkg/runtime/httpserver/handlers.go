@@ -1,10 +1,10 @@
 package httpserver
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/dmsi/identeco-go/pkg/controllers"
-	"golang.org/x/exp/slog"
 )
 
 type handler struct {
@@ -16,12 +16,12 @@ type handler struct {
 	rotatekeys *controllers.RotateController
 }
 
-func (h *handler) errResponse(err error, status int, w http.ResponseWriter, r *http.Request) {
+func (h *handler) errResponse(err error, status int, w http.ResponseWriter, _ *http.Request) {
 	h.lg.Error("oops", "error", err)
 	w.WriteHeader(status)
 }
 
-func (h *handler) okResponse(body *string, w http.ResponseWriter, r *http.Request) {
+func (h *handler) okResponse(body *string, w http.ResponseWriter, _ *http.Request) {
 	if body != nil {
 		w.Write([]byte(*body))
 	} else {

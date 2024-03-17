@@ -1,11 +1,12 @@
 package controllers
 
 import (
+	"log/slog"
+
 	e "github.com/dmsi/identeco-go/pkg/lib/err"
 	"github.com/dmsi/identeco-go/pkg/services/keys"
 	"github.com/dmsi/identeco-go/pkg/services/token"
 	"github.com/dmsi/identeco-go/pkg/storage"
-	"golang.org/x/exp/slog"
 )
 
 type Controller struct {

@@ -2,13 +2,6 @@ default: httpserver awslambda package
 
 all: awslambda package
 
-# awslambda:
-# 	GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o ./bin/jwksets ./cmd/awslambda/jwksets
-# 	GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o ./bin/register ./cmd/awslambda/register
-# 	GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o ./bin/login ./cmd/awslambda/login
-# 	GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o ./bin/refresh ./cmd/awslambda/refresh
-# 	GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o ./bin/rotatekeys ./cmd/awslambda/rotatekeys
-
 awslambda:
 	GOOS=linux GOARCH=arm64 go build -tags lambda.norpc -ldflags="-s -w" -v -o ./bin/jwksets/bootstrap ./cmd/awslambda/jwksets
 	GOOS=linux GOARCH=arm64 go build -tags lambda.norpc -ldflags="-s -w" -v -o ./bin/register/bootstrap ./cmd/awslambda/register
@@ -27,7 +20,7 @@ httpserver:
 	go build -o ./bin/identeco-http ./cmd/httpserver
 
 clean:
-	rm bin/*
+	rm -rf bin/*
 
 test:
 	go test ./...

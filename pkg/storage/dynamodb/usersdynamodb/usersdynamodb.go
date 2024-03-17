@@ -2,6 +2,7 @@ package usersdynamodb
 
 import (
 	"errors"
+	"log/slog"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -9,7 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	e "github.com/dmsi/identeco-go/pkg/lib/err"
 	"github.com/dmsi/identeco-go/pkg/storage"
-	"golang.org/x/exp/slog"
 )
 
 type UsersStorage struct {

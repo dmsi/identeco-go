@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -13,7 +14,6 @@ import (
 	"github.com/dmsi/identeco-go/pkg/storage"
 	"github.com/dmsi/identeco-go/pkg/storage/mongodb/keysmongodb"
 	"github.com/dmsi/identeco-go/pkg/storage/mongodb/usersmongodb"
-	"golang.org/x/exp/slog"
 )
 
 const (
@@ -62,7 +62,7 @@ func newLogger() *slog.Logger {
 	return lg
 }
 
-func newKeyService(lg *slog.Logger) (*keys.KeyService, error) {
+func newKeyService(_ *slog.Logger) (*keys.KeyService, error) {
 	bits, err := strconv.Atoi(os.Getenv(envPrivateKeyLength))
 	if err != nil {
 		return nil, wrap("newKeyService", err)

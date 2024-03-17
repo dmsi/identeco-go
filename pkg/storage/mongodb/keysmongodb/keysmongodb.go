@@ -2,13 +2,14 @@ package keysmongodb
 
 import (
 	"context"
+	"log/slog"
 
 	e "github.com/dmsi/identeco-go/pkg/lib/err"
 	"github.com/dmsi/identeco-go/pkg/storage"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"golang.org/x/exp/slog"
 )
 
 const (
@@ -78,7 +79,7 @@ func New(lg *slog.Logger, url, database, collection string) (*KeysStorage, error
 func (k *KeysStorage) read(keytype string) ([]byte, error) {
 	lg := k.lg.With("keytype", keytype)
 
-	filter := bson.D{{indexName, keytype}}
+	filter := bson.D{primitive.E{Key: indexName, Value: keytype}}
 	res := k.mdb.FindOne(k.ctx, filter)
 
 	key := struct {
@@ -98,11 +99,12 @@ func (k *KeysStorage) write(keytype string, data []byte) error {
 	lg := k.lg.With("keytype", keytype)
 
 	opts := options.Update().SetUpsert(true)
-	filter := bson.D{{indexName, keytype}}
-	update := bson.D{{
-		"$set", bson.D{
-			{indexName, keytype},
-			{"keydata", data},
+	filter := bson.D{primitive.E{Key: indexName, Value: keytype}}
+	update := bson.D{primitive.E{
+		Key: "$set",
+		Value: bson.D{
+			primitive.E{Key: indexName, Value: keytype},
+			primitive.E{Key: "keydata", Value: data},
 		},
 	}}
 

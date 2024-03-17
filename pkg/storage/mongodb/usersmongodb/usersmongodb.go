@@ -3,13 +3,14 @@ package usersmongodb
 import (
 	"context"
 	"errors"
+	"log/slog"
 
 	e "github.com/dmsi/identeco-go/pkg/lib/err"
 	"github.com/dmsi/identeco-go/pkg/storage"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"golang.org/x/exp/slog"
 )
 
 type UsersStorage struct {
@@ -66,7 +67,7 @@ func New(lg *slog.Logger, url, database, collection string) (*UsersStorage, erro
 }
 
 func (u *UsersStorage) ReadUserData(username string) (*storage.UserData, error) {
-	filter := bson.D{{"username", username}}
+	filter := bson.D{primitive.E{Key: "username", Value: username}}
 	res := u.mdb.FindOne(u.ctx, filter)
 
 	mongoUser := struct {

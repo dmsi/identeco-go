@@ -1,11 +1,11 @@
 package awslambda
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/dmsi/identeco-go/pkg/controllers"
-	"golang.org/x/exp/slog"
 )
 
 type Handler struct {
