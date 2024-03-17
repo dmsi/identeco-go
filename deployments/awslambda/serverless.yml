@@ -9,7 +9,8 @@ provider:
   name: aws
   region: eu-west-1
   profile: identeco
-  runtime: go1.x
+  runtime: provided.al2
+  architecture: arm64
   environment:
     IDO_DEPLOYMENT_STAGE: ${sls:stage}
     IDO_TABLE_NAME: ${self:service}-${sls:stage}-users
@@ -43,7 +44,7 @@ custom:
 
 functions:
   jwksets:
-    handler: bin/jwksets
+    handler: bootstrap
     events:
       - http:
           method: get
@@ -55,11 +56,10 @@ functions:
         Resource:
           - ${self:custom.jwksObjectArn}
     package:
-      patterns:
-        - ../../bin/jwksets
+      artifact: ../../bin/jwksets.zip
 
   register:
-    handler: bin/register
+    handler: bootstrap
     events:
       - http:
           method: post
@@ -75,11 +75,10 @@ functions:
         Resource:
           - ${self:custom.privateKeyObjectArn}
     package:
-      patterns:
-        - ../../bin/register
+      artifact: ../../bin/register.zip
 
   login:
-    handler: bin/login
+    handler: bootstrap
     events:
       - http:
           method: post
@@ -96,11 +95,10 @@ functions:
           - ${self:custom.privateKeyObjectArn}
           - ${self:custom.jwksObjectArn}
     package:
-      patterns:
-        - ../../bin/login
+      artifact: ../../bin/login.zip
 
   refresh:
-    handler: bin/refresh
+    handler: bootstrap
     events:
       - http:
           method: get
@@ -117,11 +115,10 @@ functions:
           - ${self:custom.privateKeyObjectArn}
           - ${self:custom.jwksObjectArn}
     package:
-      patterns:
-        - ../../bin/refresh
+      artifact: ../../bin/refresh.zip
 
   rotatekeys:
-    handler: bin/rotatekeys
+    handler: bootstrap
     events:
       - schedule: rate(${self:provider.environment.IDO_PRIVATE_KEY_LIFETIME})
     iamRoleStatements:
@@ -133,8 +130,7 @@ functions:
           - ${self:custom.privateKeyObjectArn}
           - ${self:custom.jwksObjectArn}
     package:
-      patterns:
-        - ../../bin/rotatekeys
+      artifact: ../../bin/rotatekeys.zip
 
 resources:
   Resources:
