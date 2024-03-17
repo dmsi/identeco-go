@@ -189,6 +189,5 @@ $ serverless deploy function -f register
 -   [x] Package functions individually
 -   [x] Split handlers to separate files
 -   [x] Moved all controllers to the same `controller` package
--   [ ] Migrate `go` to `v1.22`
+-   [x] Migrate `go` to `v1.22`
 -   [x] Migrate to `provided.al2` `arm64` AWS Lambda runtime
--   [ ] Better context for errors. Pretty stack dump?
