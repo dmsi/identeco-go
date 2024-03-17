@@ -2,13 +2,14 @@ package keysmongodb
 
 import (
 	"context"
+	"log/slog"
 
 	e "github.com/dmsi/identeco-go/pkg/lib/err"
 	"github.com/dmsi/identeco-go/pkg/storage"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"golang.org/x/exp/slog"
 )
 
 const (
@@ -33,8 +34,8 @@ type KeysStorage struct {
 	ctx            context.Context
 }
 
-func op(name string) string {
-	return "storage.s3.keysmongodb." + name
+func wrap(name string, err error) error {
+	return e.Wrap("storage.monbodb.keysmongodb."+name, err)
 }
 
 func New(lg *slog.Logger, url, database, collection string) (*KeysStorage, error) {
@@ -43,7 +44,7 @@ func New(lg *slog.Logger, url, database, collection string) (*KeysStorage, error
 
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(url))
 	if err != nil {
-		return nil, e.Wrap(op("New"), err)
+		return nil, wrap("New", err)
 	}
 
 	theLg.Info("mongodb connected")
@@ -60,7 +61,7 @@ func New(lg *slog.Logger, url, database, collection string) (*KeysStorage, error
 	)
 	if err != nil {
 		theLg.Error("mongodb index failed")
-		return nil, e.Wrap(op("New"), err)
+		return nil, wrap("New", err)
 	}
 
 	theLg.Info("mongodb index set", "index", index)
@@ -78,7 +79,7 @@ func New(lg *slog.Logger, url, database, collection string) (*KeysStorage, error
 func (k *KeysStorage) read(keytype string) ([]byte, error) {
 	lg := k.lg.With("keytype", keytype)
 
-	filter := bson.D{{indexName, keytype}}
+	filter := bson.D{primitive.E{Key: indexName, Value: keytype}}
 	res := k.mdb.FindOne(k.ctx, filter)
 
 	key := struct {
@@ -88,7 +89,7 @@ func (k *KeysStorage) read(keytype string) ([]byte, error) {
 	err := res.Decode(&key)
 	if err != nil {
 		lg.Error("read failed")
-		return nil, err
+		return nil, wrap("read", err)
 	}
 
 	return key.KeyData, nil
@@ -98,18 +99,19 @@ func (k *KeysStorage) write(keytype string, data []byte) error {
 	lg := k.lg.With("keytype", keytype)
 
 	opts := options.Update().SetUpsert(true)
-	filter := bson.D{{indexName, keytype}}
-	update := bson.D{{
-		"$set", bson.D{
-			{indexName, keytype},
-			{"keydata", data},
+	filter := bson.D{primitive.E{Key: indexName, Value: keytype}}
+	update := bson.D{primitive.E{
+		Key: "$set",
+		Value: bson.D{
+			primitive.E{Key: indexName, Value: keytype},
+			primitive.E{Key: "keydata", Value: data},
 		},
 	}}
 
 	_, err := k.mdb.UpdateOne(k.ctx, filter, update, opts)
 	if err != nil {
 		lg.Error("write failed")
-		return err
+		return wrap("write", err)
 	}
 
 	return nil
@@ -118,7 +120,7 @@ func (k *KeysStorage) write(keytype string, data []byte) error {
 func (k *KeysStorage) ReadPrivateKey() (*storage.PrivateKeyData, error) {
 	data, err := k.read(privateKeyType)
 	if err != nil {
-		return nil, e.Wrap(op("ReadPrivateKey"), err)
+		return nil, wrap("ReadPrivateKey", err)
 	}
 
 	return &storage.PrivateKeyData{
@@ -129,7 +131,7 @@ func (k *KeysStorage) ReadPrivateKey() (*storage.PrivateKeyData, error) {
 func (k *KeysStorage) WritePrivateKey(key storage.PrivateKeyData) error {
 	err := k.write(privateKeyType, key.Data)
 	if err != nil {
-		return e.Wrap(op("WritePrivateKey"), err)
+		return wrap("WritePrivateKey", err)
 	}
 
 	return nil
@@ -138,7 +140,7 @@ func (k *KeysStorage) WritePrivateKey(key storage.PrivateKeyData) error {
 func (k *KeysStorage) ReadJWKSets() (*storage.JWKSetsData, error) {
 	data, err := k.read(jwkSetsType)
 	if err != nil {
-		return nil, e.Wrap(op("ReadJWKSets"), err)
+		return nil, wrap("ReadJWKSets", err)
 	}
 
 	return &storage.JWKSetsData{
@@ -149,7 +151,7 @@ func (k *KeysStorage) ReadJWKSets() (*storage.JWKSetsData, error) {
 func (k *KeysStorage) WriteJWKSets(jwkSets storage.JWKSetsData) error {
 	err := k.write(jwkSetsType, jwkSets.Data)
 	if err != nil {
-		return e.Wrap(op("WriteJWKSets"), err)
+		return wrap("WriteJWKSets", err)
 	}
 
 	return nil

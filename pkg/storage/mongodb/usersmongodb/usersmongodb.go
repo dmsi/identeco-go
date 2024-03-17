@@ -3,13 +3,14 @@ package usersmongodb
 import (
 	"context"
 	"errors"
+	"log/slog"
 
 	e "github.com/dmsi/identeco-go/pkg/lib/err"
 	"github.com/dmsi/identeco-go/pkg/storage"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"golang.org/x/exp/slog"
 )
 
 type UsersStorage struct {
@@ -21,8 +22,8 @@ type UsersStorage struct {
 	ctx            context.Context
 }
 
-func op(name string) string {
-	return "storage.mongodb.usersmongodb." + name
+func wrap(name string, err error) error {
+	return e.Wrap("storage.mongodb.usersmongodb."+name, err)
 }
 
 // TODO what if both keydata and userdata want to share the same connection?
@@ -33,7 +34,7 @@ func New(lg *slog.Logger, url, database, collection string) (*UsersStorage, erro
 
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(url))
 	if err != nil {
-		return nil, e.Wrap(op("New"), err)
+		return nil, wrap("New", err)
 	}
 
 	theLg.Info("mongodb connected")
@@ -50,7 +51,7 @@ func New(lg *slog.Logger, url, database, collection string) (*UsersStorage, erro
 	)
 	if err != nil {
 		theLg.Error("mongodb index failed")
-		return nil, e.Wrap(op("New"), err)
+		return nil, wrap("New", err)
 	}
 
 	theLg.Info("mongodb index set", "index", index)
@@ -66,7 +67,7 @@ func New(lg *slog.Logger, url, database, collection string) (*UsersStorage, erro
 }
 
 func (u *UsersStorage) ReadUserData(username string) (*storage.UserData, error) {
-	filter := bson.D{{"username", username}}
+	filter := bson.D{primitive.E{Key: "username", Value: username}}
 	res := u.mdb.FindOne(u.ctx, filter)
 
 	mongoUser := struct {
@@ -75,7 +76,7 @@ func (u *UsersStorage) ReadUserData(username string) (*storage.UserData, error) 
 	}{}
 	err := res.Decode(&mongoUser)
 	if err != nil {
-		return nil, e.Wrap(op("ReadUserData"), err)
+		return nil, wrap("ReadUserData", err)
 	}
 
 	return &storage.UserData{
@@ -84,25 +85,10 @@ func (u *UsersStorage) ReadUserData(username string) (*storage.UserData, error) 
 	}, nil
 }
 
-// Must fail when user exists. For updating password later UpdateUserData
-// needs to be implemented
 func (u *UsersStorage) WriteUserData(user storage.UserData) error {
 	if user.Username == "" || user.Hash == "" {
-		return e.Wrap(op("WriteUserData"), errors.New("invalid arguments"))
+		return wrap("WriteUserData", errors.New("invalid arguments"))
 	}
-	// opts := options.Update().SetUpsert(true)
-	// filter := bson.D{{"username", user.Username}}
-	// update := bson.D{{
-	// 	"$set", bson.D{
-	// 		{"username", user.Username},
-	// 		{"hash", user.Hash},
-	// 	},
-	// }}
-
-	// _, err := u.mdb.UpdateOne(u.ctx, filter, update, opts)
-	// if err != nil {
-	// 	return e.Wrap(op("WriteUserData"), err)
-	// }
 
 	mongoUser := struct {
 		Username string `bson:"username"`
@@ -114,7 +100,7 @@ func (u *UsersStorage) WriteUserData(user storage.UserData) error {
 
 	_, err := u.mdb.InsertOne(u.ctx, &mongoUser)
 	if err != nil {
-		return e.Wrap(op("WriteUserData"), err)
+		return wrap("WriteUserData", err)
 	}
 
 	return nil

@@ -2,6 +2,7 @@ package usersdynamodb
 
 import (
 	"errors"
+	"log/slog"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -9,7 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	e "github.com/dmsi/identeco-go/pkg/lib/err"
 	"github.com/dmsi/identeco-go/pkg/storage"
-	"golang.org/x/exp/slog"
 )
 
 type UsersStorage struct {
@@ -28,8 +28,8 @@ func New(lg *slog.Logger, table string) *UsersStorage {
 	}
 }
 
-func op(name string) string {
-	return "storage.dynamodb.usersdynamodb." + name
+func wrap(name string, err error) error {
+	return e.Wrap("storage.dynamodb.userdynamodb."+name, err)
 }
 
 func (u *UsersStorage) ReadUserData(username string) (*storage.UserData, error) {
@@ -44,11 +44,11 @@ func (u *UsersStorage) ReadUserData(username string) (*storage.UserData, error) 
 
 	item, err := u.ddb.GetItem(input)
 	if err != nil {
-		return nil, e.Wrap(op("ReadUserData"), err)
+		return nil, wrap("ReadUserData", err)
 	}
 
 	if item.Item == nil {
-		return nil, e.Wrap(op("ReadUserData"), errors.New("user not found"))
+		return nil, wrap("ReadUserData", errors.New("user not found"))
 	}
 
 	user := &struct {
@@ -59,7 +59,7 @@ func (u *UsersStorage) ReadUserData(username string) (*storage.UserData, error) 
 
 	err = dynamodbattribute.UnmarshalMap(item.Item, user)
 	if err != nil {
-		return nil, e.Wrap(op("ReadUserData"), err)
+		return nil, wrap("ReadUserData", err)
 	}
 
 	return &storage.UserData{
@@ -84,7 +84,7 @@ func (u *UsersStorage) WriteUserData(user storage.UserData) error {
 
 	_, err := u.ddb.PutItem(input)
 	if err != nil {
-		return e.Wrap(op("WriteUserData"), err)
+		return wrap("WriteUserData", err)
 	}
 
 	return nil

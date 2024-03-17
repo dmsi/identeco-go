@@ -23,8 +23,8 @@ type Tokens struct {
 	RefreshToken string `json:"refresh"`
 }
 
-func op(name string) string {
-	return "services.token." + name
+func wrap(name string, err error) error {
+	return e.Wrap("services.token."+name, err)
 }
 
 func (t *TokenService) accessTokenClaims(username string) jwt.MapClaims {
@@ -48,7 +48,7 @@ func (t *TokenService) refreshTokenClaims(username string) jwt.MapClaims {
 func (t *TokenService) signToken(claims jwt.MapClaims, privateKey rsa.PrivateKey) (*string, error) {
 	jwk, err := t.KeyService.PublicKeyToJWK(privateKey.PublicKey)
 	if err != nil {
-		return nil, err
+		return nil, wrap("signToken", err)
 	}
 
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
@@ -56,7 +56,7 @@ func (t *TokenService) signToken(claims jwt.MapClaims, privateKey rsa.PrivateKey
 
 	signedAccessToken, err := accessToken.SignedString(&privateKey)
 	if err != nil {
-		return nil, err
+		return nil, wrap("signToken", err)
 	}
 
 	return aws.String(signedAccessToken), nil
@@ -65,12 +65,12 @@ func (t *TokenService) signToken(claims jwt.MapClaims, privateKey rsa.PrivateKey
 func (t *TokenService) IssueTokens(username string, privateKey *rsa.PrivateKey) (*Tokens, error) {
 	accessToken, err := t.signToken(t.accessTokenClaims(username), *privateKey)
 	if err != nil {
-		return nil, e.Wrap(op("IssueTokens"), err)
+		return nil, wrap("IssueTokens", err)
 	}
 
 	refreshToken, err := t.signToken(t.refreshTokenClaims(username), *privateKey)
 	if err != nil {
-		return nil, e.Wrap(op("IssueTokens"), err)
+		return nil, wrap("IssueTokens", err)
 	}
 
 	return &Tokens{
@@ -82,14 +82,13 @@ func (t *TokenService) IssueTokens(username string, privateKey *rsa.PrivateKey) 
 func (t *TokenService) VerifyRefreshToken(token string, jwkSets keys.JWKSets) (*string, error) {
 	getKey := func(tn *jwt.Token) (interface{}, error) {
 		if _, ok := tn.Method.(*jwt.SigningMethodRSA); !ok {
-			return nil, e.Wrap(op("VerifyRefreshToken"), errors.New("unexpected signing method"))
+			return nil, wrap("VerifyRefreshToken", errors.New("unexpected signing method"))
 		}
 
 		k := keys.KeyService{}
 		publicKey, err := k.JWKSetsToPublicKey(jwkSets, tn.Header["kid"].(string))
 		if err != nil {
-			// Wrap?
-			return nil, err
+			return nil, wrap("VerifyRefreshToken", err)
 		}
 
 		return publicKey, nil
@@ -97,28 +96,28 @@ func (t *TokenService) VerifyRefreshToken(token string, jwkSets keys.JWKSets) (*
 
 	parsed, err := jwt.Parse(token, getKey)
 	if err != nil {
-		return nil, e.Wrap(op("VerifyRefreshToken"), err)
+		return nil, wrap("VerifyRefreshToken", err)
 	}
 
 	_ = parsed
 
 	if !parsed.Valid {
-		return nil, e.Wrap(op("VerifyRefreshToken"), errors.New("invalid token claims"))
+		return nil, wrap("VerifyRefreshToken", errors.New("invalid token claims"))
 	}
 
 	claims, ok := parsed.Claims.(jwt.MapClaims)
 	if !ok {
-		return nil, e.Wrap(op("VerifyRefreshToken"), errors.New("invalid token claims"))
+		return nil, wrap("VerifyRefreshToken", errors.New("invalid token claims"))
 	}
 
 	use, ok := claims["token_use"].(string)
 	if !ok || use != "refresh" {
-		return nil, e.Wrap(op("VerifyRefreshToken"), errors.New("invalid token claims"))
+		return nil, wrap("VerifyRefreshToken", errors.New("invalid token claims"))
 	}
 
 	username, ok := claims["username"].(string)
 	if !ok {
-		return nil, e.Wrap(op("VerifyRefreshToken"), errors.New("invalid token claims"))
+		return nil, wrap("VerifyRefreshToken", errors.New("invalid token claims"))
 	}
 
 	return aws.String(username), nil

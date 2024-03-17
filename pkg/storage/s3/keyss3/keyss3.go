@@ -2,6 +2,7 @@ package keyss3
 
 import (
 	"bytes"
+	"log/slog"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -10,7 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager/s3manageriface"
 	e "github.com/dmsi/identeco-go/pkg/lib/err"
 	"github.com/dmsi/identeco-go/pkg/storage"
-	"golang.org/x/exp/slog"
 )
 
 type s3Session struct {
@@ -42,8 +42,8 @@ func New(lg *slog.Logger, bucket, privateKeyName, jwkSetsName string) *KeysStora
 	}
 }
 
-func op(name string) string {
-	return "storage.s3.keyss3." + name
+func wrap(name string, err error) error {
+	return e.Wrap("storage.s3.keyss3."+name, err)
 }
 
 func (s *s3Session) readS3SmallObject(bucket, key string) ([]byte, error) {
@@ -55,7 +55,7 @@ func (s *s3Session) readS3SmallObject(bucket, key string) ([]byte, error) {
 
 	_, err := s.downloader.Download(buf, input)
 	if err != nil {
-		return nil, err
+		return nil, wrap("readS3SmallObject", err)
 	}
 
 	return buf.Bytes(), nil
@@ -65,7 +65,7 @@ func (s *s3Session) writeS3SmallObject(bucket, key string, object []byte) error 
 	buf := bytes.Buffer{}
 	_, err := buf.Write(object)
 	if err != nil {
-		return err
+		return wrap("writeS3SmallObject", err)
 	}
 
 	input := &s3manager.UploadInput{
@@ -76,7 +76,7 @@ func (s *s3Session) writeS3SmallObject(bucket, key string, object []byte) error 
 
 	_, err = s.uploader.Upload(input)
 	if err != nil {
-		return err
+		return wrap("writeS3SmallObject", err)
 	}
 
 	return nil
@@ -85,7 +85,7 @@ func (s *s3Session) writeS3SmallObject(bucket, key string, object []byte) error 
 func (k *KeysStorage) ReadPrivateKey() (*storage.PrivateKeyData, error) {
 	data, err := k.client.readS3SmallObject(k.bucket, k.privateKeyName)
 	if err != nil {
-		return nil, e.Wrap(op("ReadPrivateKey"), err)
+		return nil, wrap("ReadPrivateKey", err)
 	}
 
 	return &storage.PrivateKeyData{
@@ -96,7 +96,7 @@ func (k *KeysStorage) ReadPrivateKey() (*storage.PrivateKeyData, error) {
 func (k *KeysStorage) WritePrivateKey(key storage.PrivateKeyData) error {
 	err := k.client.writeS3SmallObject(k.bucket, k.privateKeyName, key.Data)
 	if err != nil {
-		return e.Wrap(op("WritePrivateKey"), err)
+		return wrap("WritePrivateKey", err)
 	}
 
 	return nil
@@ -107,7 +107,7 @@ func (k *KeysStorage) ReadJWKSets() (*storage.JWKSetsData, error) {
 
 	data, err := k.client.readS3SmallObject(k.bucket, k.jwkSetsName)
 	if err != nil {
-		return nil, e.Wrap(op("ReadJWKSets"), err)
+		return nil, wrap("ReadJWKSets", err)
 	}
 
 	return &storage.JWKSetsData{
@@ -118,7 +118,7 @@ func (k *KeysStorage) ReadJWKSets() (*storage.JWKSetsData, error) {
 func (k *KeysStorage) WriteJWKSets(jwkSets storage.JWKSetsData) error {
 	err := k.client.writeS3SmallObject(k.bucket, k.jwkSetsName, jwkSets.Data)
 	if err != nil {
-		return e.Wrap(op("WriteJWKSets"), err)
+		return wrap("WriteJWKSets", err)
 	}
 
 	return nil
