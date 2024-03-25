@@ -4,14 +4,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 )
 
-type JWKSetsController struct {
-	Controller
-}
-
-func (c *JWKSetsController) GetJWKSets() (*string, error) {
+func (c *Controller) GetJWKS() (*string, error) {
 	jwkSetsData, err := c.KeyStorage.ReadJWKSets()
 	if err != nil {
-		return nil, wrap("GetJWKSets", err)
+		return nil, err
 	}
 
 	return aws.String(string(jwkSetsData.Data)), nil

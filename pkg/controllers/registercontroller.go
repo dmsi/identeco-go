@@ -6,23 +6,19 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type RegisterController struct {
-	Controller
-}
-
 func hashPassword(password string) (*string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, wrap("hashPassword", err)
+		return nil, err
 	}
 
 	return aws.String(string(hash)), nil
 }
 
-func (c *RegisterController) Register(username, password string) (*string, error) {
+func (c *Controller) Register(username, password string) (*string, error) {
 	hash, err := hashPassword(password)
 	if err != nil {
-		return nil, wrap("Register", err)
+		return nil, err
 	}
 
 	user := &storage.UserData{
@@ -32,7 +28,7 @@ func (c *RegisterController) Register(username, password string) (*string, error
 
 	err = c.UserStorage.WriteUserData(*user)
 	if err != nil {
-		return nil, wrap("Register", err)
+		return nil, err
 	}
 
 	return nil, nil

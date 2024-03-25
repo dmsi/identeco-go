@@ -7,26 +7,22 @@ import (
 	"github.com/dmsi/identeco-go/pkg/storage"
 )
 
-type RotateController struct {
-	Controller
-}
-
-func (c *RotateController) RotateKeys() error {
+func (c *Controller) RotateKeys() error {
 	keyData := storage.PrivateKeyData{}
 
 	privateKey, err := c.KeyService.GenerateKey()
 	if err != nil {
-		return wrap("RotateKeys", err)
+		return err
 	}
 
 	keyData.Data, err = c.KeyService.PrivateKeyEncodePEM(privateKey)
 	if err != nil {
-		return wrap("RotateKeys", err)
+		return err
 	}
 
 	j, err := c.KeyService.PublicKeyToJWK(privateKey.PublicKey)
 	if err != nil {
-		return wrap("RotateKeys", err)
+		return err
 	}
 	new := keys.JWKSets{
 		Keys: []keys.JWK{
@@ -39,7 +35,7 @@ func (c *RotateController) RotateKeys() error {
 		current := keys.JWKSets{}
 		err = json.Unmarshal(jwkSetsData.Data, &current)
 		if err != nil {
-			return wrap("RotateKeys", err)
+			return err
 		}
 		new.Keys = append(new.Keys, current.Keys[0])
 	}
@@ -48,18 +44,18 @@ func (c *RotateController) RotateKeys() error {
 	// TODO atomic
 	err = c.KeyStorage.WritePrivateKey(keyData)
 	if err != nil {
-		return wrap("RotateKeys", err)
+		return err
 	}
 
 	data, err := json.Marshal(&new)
 	if err != nil {
-		return wrap("RotateKeys", err)
+		return err
 	}
 	err = c.KeyStorage.WriteJWKSets(storage.JWKSetsData{
 		Data: data,
 	})
 	if err != nil {
-		return wrap("RotateKeys", err)
+		return err
 	}
 
 	return nil

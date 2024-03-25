@@ -8,55 +8,47 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type LoginController struct {
-	Controller
-}
-
 func comparePassword(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	if err != nil {
-		return false
-	}
-
-	return true
+	return err == nil
 }
 
-func (c *LoginController) Login(username, password string) (*string, error) {
+func (c *Controller) Login(username, password string) (*string, error) {
 	lg := c.Log.With("user", username)
 
 	// Read data
 	keyData, err := c.KeyStorage.ReadPrivateKey()
 	if err != nil {
-		return nil, wrap("Login", err)
+		return nil, err
 	}
 
 	privateKey, err := c.KeyService.PrivateKeyDecodePEM(keyData.Data)
 	if err != nil {
-		return nil, wrap("Login", err)
+		return nil, err
 	}
 
 	// TODO user not found -> return error
 	user, err := c.UserStorage.ReadUserData(username)
 	if err != nil {
 		lg.Error("read user", "error", err)
-		return nil, wrap("Login", err)
+		return nil, err
 	}
 
 	// Logic
 	if !comparePassword(password, user.Hash) {
 		lg.Info("invalid password")
-		return nil, wrap("Login", errors.New("invalid password"))
+		return nil, errors.New("password is not correct")
 	}
 
 	tokens, err := c.TokenService.IssueTokens(username, privateKey)
 	if err != nil {
 		lg.Error("issue tokens", "error", err)
-		return nil, wrap("Login", err)
+		return nil, err
 	}
 
 	body, err := json.Marshal(tokens)
 	if err != nil {
-		return nil, wrap("Login", err)
+		return nil, err
 	}
 
 	return aws.String(string(body)), nil

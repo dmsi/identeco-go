@@ -1,10 +1,13 @@
 module github.com/dmsi/identeco-go
 
-go 1.19
+go 1.21
+
+toolchain go1.22.1
 
 require (
 	github.com/aws/aws-lambda-go v1.46.0
 	github.com/aws/aws-sdk-go v1.50.25
+	github.com/awslabs/aws-lambda-go-api-proxy v0.16.1
 	github.com/go-chi/chi/v5 v5.0.12
 	github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/joho/godotenv v1.5.1

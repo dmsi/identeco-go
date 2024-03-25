@@ -109,7 +109,6 @@ func (k *KeysStorage) ReadJWKSets() (*storage.JWKSetsData, error) {
 	if err != nil {
 		return nil, wrap("ReadJWKSets", err)
 	}
-
 	return &storage.JWKSetsData{
 		Data: data,
 	}, nil

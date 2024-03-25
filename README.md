@@ -105,8 +105,8 @@ The following snippet can be used in order to run the tests in `bash` environmen
 cd ./test
 
 # Setup pyton venv and activate it
-python -m venv myenv
-source myenv/bin/activate
+python -m venv venv
+source venv/bin/activate
 
 # Setup python dependencies
 pip install -r requirements.txt

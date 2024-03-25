@@ -7,52 +7,48 @@ import (
 	"github.com/dmsi/identeco-go/pkg/services/keys"
 )
 
-type RefreshController struct {
-	Controller
-}
-
-func (r *RefreshController) Refresh(refreshToken string) (*string, error) {
+func (c *Controller) Refresh(refreshToken string) (*string, error) {
 	// Read data
-	jwkSetsData, err := r.KeyStorage.ReadJWKSets()
+	jwkSetsData, err := c.KeyStorage.ReadJWKSets()
 	if err != nil {
-		return nil, wrap("Refresh", err)
+		return nil, err
 	}
 
 	jwkSets := keys.JWKSets{}
 	err = json.Unmarshal(jwkSetsData.Data, &jwkSets)
 	if err != nil {
-		return nil, wrap("Refresh", err)
+		return nil, err
 	}
 
-	keyData, err := r.KeyStorage.ReadPrivateKey()
+	keyData, err := c.KeyStorage.ReadPrivateKey()
 	if err != nil {
-		return nil, wrap("Refresh", err)
+		return nil, err
 	}
 
-	privateKey, err := r.KeyService.PrivateKeyDecodePEM(keyData.Data)
+	privateKey, err := c.KeyService.PrivateKeyDecodePEM(keyData.Data)
 	if err != nil {
-		return nil, wrap("Refresh", err)
+		return nil, err
 	}
 
 	// Logic
-	username, err := r.TokenService.VerifyRefreshToken(refreshToken, jwkSets)
+	username, err := c.TokenService.VerifyRefreshToken(refreshToken, jwkSets)
 	if err != nil {
-		return nil, wrap("Refresh", err)
+		return nil, err
 	}
 
-	_, err = r.UserStorage.ReadUserData(*username)
+	_, err = c.UserStorage.ReadUserData(*username)
 	if err != nil {
-		return nil, wrap("Refresh", err)
+		return nil, err
 	}
 
-	tokens, err := r.TokenService.IssueTokens(*username, privateKey)
+	tokens, err := c.TokenService.IssueTokens(*username, privateKey)
 	if err != nil {
-		return nil, wrap("Refresh", err)
+		return nil, err
 	}
 
 	body, err := json.Marshal(tokens)
 	if err != nil {
-		return nil, wrap("Refresh", err)
+		return nil, err
 	}
 
 	return aws.String(string(body)), nil

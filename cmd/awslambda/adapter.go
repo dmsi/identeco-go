@@ -1,19 +1,24 @@
 package awslambda
 
 import (
+	"context"
 	"log/slog"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
 	"time"
 
+	"github.com/aws/aws-lambda-go/events"
+	chiadapter "github.com/awslabs/aws-lambda-go-api-proxy/chi"
 	"github.com/dmsi/identeco-go/pkg/controllers"
-	e "github.com/dmsi/identeco-go/pkg/lib/err"
 	"github.com/dmsi/identeco-go/pkg/services/keys"
 	"github.com/dmsi/identeco-go/pkg/services/token"
 	"github.com/dmsi/identeco-go/pkg/storage"
 	"github.com/dmsi/identeco-go/pkg/storage/dynamodb/usersdynamodb"
 	"github.com/dmsi/identeco-go/pkg/storage/s3/keyss3"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 const (
@@ -27,10 +32,6 @@ const (
 	envPrivateKeyName       = "IDO_PRIVATE_KEY_NAME"
 	envJWKSetsName          = "IDO_JWKS_NAME"
 )
-
-func wrap(name string, err error) error {
-	return e.Wrap("runtime.awslambda."+name, err)
-}
 
 func newLogger() *slog.Logger {
 	// Remove the directory from the source's filename.
@@ -65,7 +66,7 @@ func newLogger() *slog.Logger {
 func newKeyService(_ *slog.Logger) (*keys.KeyService, error) {
 	bits, err := strconv.Atoi(os.Getenv(envPrivateKeyLength))
 	if err != nil {
-		return nil, wrap("newKeyService", err)
+		return nil, err
 	}
 
 	return &keys.KeyService{
@@ -76,17 +77,17 @@ func newKeyService(_ *slog.Logger) (*keys.KeyService, error) {
 func newTokenService(lg *slog.Logger) (*token.TokenService, error) {
 	accessTokenLifetime, err := time.ParseDuration(os.Getenv(envAccessTokenLifetime))
 	if err != nil {
-		return nil, wrap("newTokenService", err)
+		return nil, err
 	}
 
 	refreshTokenLifetime, err := time.ParseDuration(os.Getenv(envRefreshTokenLifetime))
 	if err != nil {
-		return nil, wrap("newTokenService", err)
+		return nil, err
 	}
 
 	k, err := newKeyService(lg)
 	if err != nil {
-		return nil, wrap("newTokenService", err)
+		return nil, err
 	}
 
 	return &token.TokenService{
@@ -110,27 +111,27 @@ func newUserStorage(lg *slog.Logger) (storage.UsersStorage, error) {
 	return usersdynamodb.New(lg, os.Getenv(envTableName)), nil
 }
 
-func newController() (*controllers.Controller, error) {
+func NewController() (*controllers.Controller, error) {
 	lg := newLogger()
 
 	userStorage, err := newUserStorage(lg)
 	if err != nil {
-		return nil, wrap("newController", err)
+		return nil, err
 	}
 
 	keyStorage, err := newKeyStorage(lg)
 	if err != nil {
-		return nil, wrap("newController", err)
+		return nil, err
 	}
 
 	tokenService, err := newTokenService(lg)
 	if err != nil {
-		return nil, wrap("newController", err)
+		return nil, err
 	}
 
 	keyService, err := newKeyService(lg)
 	if err != nil {
-		return nil, wrap("newController", err)
+		return nil, err
 	}
 
 	return &controllers.Controller{
@@ -142,62 +143,19 @@ func newController() (*controllers.Controller, error) {
 	}, nil
 }
 
-func NewJWKSetsHandler() (*Handler, error) {
-	c, err := newController()
-	if err != nil {
-		return nil, wrap("NewJWKSetsHandler", err)
+type LambdaHandler func(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error)
+
+func ChiAdapter(method string, path string, handlerFn http.HandlerFunc) LambdaHandler {
+	r := chi.NewRouter()
+	r.Use(middleware.RealIP)
+	r.Use(middleware.RequestID)
+	r.Use(middleware.Logger)
+	r.MethodFunc(method, path, handlerFn)
+	adapter := chiadapter.New(r)
+
+	fn := func(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+		return adapter.ProxyWithContext(ctx, req)
 	}
 
-	return &Handler{
-		lg:      c.Log,
-		jwksets: &controllers.JWKSetsController{Controller: *c},
-	}, nil
-}
-
-func NewRegisterHandler() (*Handler, error) {
-	c, err := newController()
-	if err != nil {
-		return nil, wrap("NewRegisterHandler", err)
-	}
-
-	return &Handler{
-		lg:       c.Log,
-		register: &controllers.RegisterController{Controller: *c},
-	}, nil
-}
-
-func NewLoginHandler() (*Handler, error) {
-	c, err := newController()
-	if err != nil {
-		return nil, wrap("NewLoginHandler", err)
-	}
-
-	return &Handler{
-		lg:    c.Log,
-		login: &controllers.LoginController{Controller: *c},
-	}, nil
-}
-
-func NewRefreshHandler() (*Handler, error) {
-	c, err := newController()
-	if err != nil {
-		return nil, wrap("NewRefreshHandler", err)
-	}
-
-	return &Handler{
-		lg:      c.Log,
-		refresh: &controllers.RefreshController{Controller: *c},
-	}, nil
-}
-
-func NewRotateKeysHandler() (*Handler, error) {
-	c, err := newController()
-	if err != nil {
-		return nil, wrap("NewRotateKeysHandler", err)
-	}
-
-	return &Handler{
-		lg:         c.Log,
-		rotatekeys: &controllers.RotateController{Controller: *c},
-	}, nil
+	return fn
 }

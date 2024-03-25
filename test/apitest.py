@@ -205,7 +205,7 @@ def main():
         testJwks(200)
 
         # Login non-registered user
-        testLogin(401, "non-registered user")
+        testLogin(400, "non-registered user")
 
         # Register new user
         testRegister(204, "new user")
@@ -228,7 +228,7 @@ def main():
         state.password = "wrong"
 
         # Login using wrong password
-        testLogin(401, "wrong password")
+        testLogin(400, "wrong password")
 
         # Register existing user
         testRegister(400, "existing user")
@@ -236,7 +236,7 @@ def main():
         # Login using empty credentials
         state.username = ""
         state.password = ""
-        testLogin(401, "empty credentials")
+        testLogin(400, "empty credentials")
 
         # Register using empty credentials
         testRegister(400, "empty credentials")

@@ -8,7 +8,6 @@ frameworkVersion: '3'
 provider:
   name: aws
   region: eu-west-1
-  profile: identeco
   runtime: provided.al2
   architecture: arm64
   environment:
@@ -131,6 +130,15 @@ functions:
           - ${self:custom.jwksObjectArn}
     package:
       artifact: ../../bin/rotatekeys.zip
+
+  ping:
+    handler: bootstrap
+    events:
+      - http:
+          method: get
+          path: ping/{id}
+    package:
+      artifact: ../../bin/ping.zip
 
 resources:
   Resources:
