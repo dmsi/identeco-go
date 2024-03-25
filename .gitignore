@@ -3,4 +3,4 @@
 bin/
 tmp/
 **/.serverless
-**/myenv/
+**/venv/
