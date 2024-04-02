@@ -8,20 +8,21 @@ frameworkVersion: '3'
 provider:
   name: aws
   region: eu-west-1
-  profile: identeco
   runtime: provided.al2
   architecture: arm64
   environment:
     IDO_DEPLOYMENT_STAGE: ${sls:stage}
-    IDO_TABLE_NAME: ${self:service}-${sls:stage}-users
-    IDO_BUCKET_NAME: ${self:service}-${sls:stage}-keys
-    IDO_PRIVATE_KEY_NAME: 'keypair.pem'
-    IDO_JWKS_NAME: 'jwks.json'
     IDO_PRIVATE_KEY_LENGTH: 2048
     IDO_PRIVATE_KEY_LIFETIME: '30 days'
     IDO_ACCESS_TOKEN_LIFETIME: '60m'
     IDO_REFRESH_TOKEN_LIFETIME: '720h'
     IDO_CLAIM_ISS: https://github.com/dmsi/identeco
+    IDO_STORAGE_DRIVER_USERS: dynamodb
+    IDO_STORAGE_DRIVER_KEYS: s3
+    IDO_STORAGE_DRIVER_USERS_DDB_TABLE_NAME: ${self:service}-${sls:stage}-users
+    IDO_STORAGE_DRIVER_KEYS_S3_BUCKET_NAME: ${self:service}-${sls:stage}-keys
+    IDO_STORAGE_DRIVER_KEYS_S3_PRIVATE_KEY_NAME: keypair.pem
+    IDO_STORAGE_DRIVER_KEYS_S3_JWKS_NAME: jwks.json
 
 package:
   individually: true
@@ -35,12 +36,12 @@ custom:
     Fn::Join:
       - '/'
       - - Fn::GetAtt: [keysBucket, Arn]
-        - ${self:provider.environment.IDO_PRIVATE_KEY_NAME}
+        - ${self:provider.environment.IDO_STORAGE_DRIVER_KEYS_S3_PRIVATE_KEY_NAME}
   jwksObjectArn:
     Fn::Join:
       - '/'
       - - Fn::GetAtt: [keysBucket, Arn]
-        - ${self:provider.environment.IDO_JWKS_NAME}
+        - ${self:provider.environment.IDO_STORAGE_DRIVER_KEYS_S3_JWKS_NAME}
 
 functions:
   jwksets:
@@ -54,6 +55,7 @@ functions:
         Action:
           - s3:GetObject
         Resource:
+          - ${self:custom.privateKeyObjectArn}
           - ${self:custom.jwksObjectArn}
     package:
       artifact: ../../bin/jwksets.zip
@@ -74,6 +76,7 @@ functions:
           - s3:GetObject
         Resource:
           - ${self:custom.privateKeyObjectArn}
+          - ${self:custom.jwksObjectArn}
     package:
       artifact: ../../bin/register.zip
 
@@ -132,12 +135,21 @@ functions:
     package:
       artifact: ../../bin/rotatekeys.zip
 
+  ping:
+    handler: bootstrap
+    events:
+      - http:
+          method: get
+          path: ping/{id}
+    package:
+      artifact: ../../bin/ping.zip
+
 resources:
   Resources:
     usersTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: ${self:provider.environment.IDO_TABLE_NAME}
+        TableName: ${self:provider.environment.IDO_STORAGE_DRIVER_USERS_DDB_TABLE_NAME}
         AttributeDefinitions:
           - AttributeName: username
             AttributeType: S
@@ -150,5 +162,5 @@ resources:
     keysBucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: ${self:provider.environment.IDO_BUCKET_NAME}
+        BucketName: ${self:provider.environment.IDO_STORAGE_DRIVER_KEYS_S3_BUCKET_NAME}
         AccessControl: Private

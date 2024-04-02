@@ -105,8 +105,8 @@ The following snippet can be used in order to run the tests in `bash` environmen
 cd ./test
 
 # Setup pyton venv and activate it
-python -m venv myenv
-source myenv/bin/activate
+python -m venv venv
+source venv/bin/activate
 
 # Setup python dependencies
 pip install -r requirements.txt
@@ -191,3 +191,9 @@ $ serverless deploy function -f register
 -   [x] Moved all controllers to the same `controller` package
 -   [x] Migrate `go` to `v1.22`
 -   [x] Migrate to `provided.al2` `arm64` AWS Lambda runtime
+
+## v0.1.7-alpha
+
+-   [x] Refactor and unify the handlers
+-   [x] Add config
+-   [x] Cleanup logs
